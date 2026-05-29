@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emlak CRM Pro</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-header">
+      <div class="logo">
+        <i class="fa-solid fa-building"></i>
+        <span>Emlak CRM</span>
+      </div>
+
+      <button class="sidebar-toggle" id="sidebarClose">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+
+        <li>
+          <a href="#" class="nav-item active" data-page="dashboard">
+            <i class="fa-solid fa-chart-line"></i>
+            Dashboard
+          </a>
+        </li>
+
+        <li>
+          <a href="#" class="nav-item" data-page="portfolios">
+            <i class="fa-solid fa-house"></i>
+            Portföyler
+          </a>
+        </li>
+
+        <li>
+          <a href="#" class="nav-item" data-page="customers">
+            <i class="fa-solid fa-users"></i>
+            Müşteriler
+          </a>
+        </li>
+
+        <li>
+          <a href="#" class="nav-item" data-page="matching">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            Eşleştirme
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fa-solid fa-user"></i>
+        </div>
+
+        <div>
+          <div class="user-name">Admin</div>
+          <div class="user-role">Sistem Yöneticisi</div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- OVERLAY -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+
+      <div class="topbar-left">
+
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <h1 class="page-title" id="pageTitle">
+          Dashboard
+        </h1>
+
+      </div>
+
+      <div class="topbar-right">
+
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+
+          <input
+            type="text"
+            id="globalSearch"
+            placeholder="Ara..."
+          />
+        </div>
+
+        <button class="notification-btn">
+          <i class="fa-solid fa-bell"></i>
+          <span class="badge">3</span>
+        </button>
+
+      </div>
+
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+
+      <!-- DASHBOARD -->
+      <section class="page" id="dashboardPage">
+
+        <div class="stats-grid">
+
+          <div class="stat-card blue">
+            <div class="stat-icon">
+              <i class="fa-solid fa-house"></i>
+            </div>
+
+            <div>
+              <div class="stat-value" id="portfolioCount">0</div>
+              <div class="stat-label">Toplam Portföy</div>
+            </div>
+          </div>
+
+          <div class="stat-card green">
+            <div class="stat-icon">
+              <i class="fa-solid fa-users"></i>
+            </div>
+
+            <div>
+              <div class="stat-value" id="customerCount">0</div>
+              <div class="stat-label">Müşteri</div>
+            </div>
+          </div>
+
+          <div class="stat-card orange">
+            <div class="stat-icon">
+              <i class="fa-solid fa-handshake"></i>
+            </div>
+
+            <div>
+              <div class="stat-value" id="matchCount">0</div>
+              <div class="stat-label">Eşleşme</div>
+            </div>
+          </div>
+
+          <div class="stat-card purple">
+            <div class="stat-icon">
+              <i class="fa-solid fa-image"></i>
+            </div>
+
+            <div>
+              <div class="stat-value">6</div>
+              <div class="stat-label">Max Foto</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="dashboard-grid">
+
+          <!-- RECENT PORTFOLIOS -->
+          <div class="card">
+
+            <div class="card-header">
+              <h3>
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                Son Eklenen Portföyler
+              </h3>
+            </div>
+
+            <div class="card-body" id="recentPortfolios">
+            </div>
+
+          </div>
+
+          <!-- RECENT CUSTOMERS -->
+          <div class="card">
+
+            <div class="card-header">
+              <h3>
+                <i class="fa-solid fa-user-clock"></i>
+                Son Müşteriler
+              </h3>
+            </div>
+
+            <div class="card-body" id="recentCustomers">
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- PORTFOLIOS -->
+      <section class="page hidden" id="portfoliosPage">
+
+        <div class="page-actions">
+
+          <div class="filter-bar">
+
+            <select class="filter-select" id="portfolioTypeFilter">
+              <option value="">Tüm Türler</option>
+              <option value="Daire">Daire</option>
+              <option value="Villa">Villa</option>
+              <option value="Arsa">Arsa</option>
+            </select>
+
+            <select class="filter-select" id="portfolioStatusFilter">
+              <option value="">Tüm Durumlar</option>
+              <option value="Satılık">Satılık</option>
+              <option value="Kiralık">Kiralık</option>
+            </select>
+
+          </div>
+
+          <button class="btn btn-primary" id="addPortfolioBtn">
+            <i class="fa-solid fa-plus"></i>
+            Portföy Ekle
+          </button>
+
+        </div>
+
+        <div class="portfolio-grid" id="portfolioGrid">
+        </div>
+
+      </section>
+
+      <!-- CUSTOMERS -->
+      <section class="page hidden" id="customersPage">
+
+        <div class="page-actions">
+
+          <div></div>
+
+          <button class="btn btn-primary" id="addCustomerBtn">
+            <i class="fa-solid fa-user-plus"></i>
+            Müşteri Ekle
+          </button>
+
+        </div>
+
+        <div class="customers-table-wrapper">
+
+          <table class="data-table">
+
+            <thead>
+              <tr>
+                <th>Ad Soyad</th>
+                <th>Telefon</th>
+                <th>İhtiyaç</th>
+                <th>Bütçe</th>
+                <th>Durum</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+
+            <tbody id="customersTableBody">
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+      <!-- MATCHING -->
+      <section class="page hidden" id="matchingPage">
+
+        <div class="matching-container">
+
+          <div class="matching-header">
+            <h2>
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              Otomatik Eşleştirme
+            </h2>
+
+            <p>
+              Müşteri ve portföy uyumluluğu otomatik analiz edilir.
+            </p>
+          </div>
+
+          <div class="matching-grid" id="matchingGrid">
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+
+    <div class="modal">
+
+      <div class="modal-header">
+
+        <h2 id="modalTitle">
+          Yeni Kayıt
+        </h2>
+
+        <button class="modal-close" id="modalClose">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+      </div>
+
+      <div class="modal-body" id="modalBody">
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+
+</body>
+</html>
