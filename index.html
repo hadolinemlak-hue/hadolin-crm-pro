@@ -2,7 +2,9 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="theme-color" content="#0f172a">
+
   <title>Hadolin CRM Pro</title>
 
   <link rel="stylesheet" href="style.css"/>
@@ -11,13 +13,19 @@
 
 <body>
 
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <!-- SIDEBAR -->
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
+
   <div class="sidebar-header">
     <div class="logo">
       <i class="fa-solid fa-building"></i>
       <span>Hadolin CRM</span>
     </div>
+
+    <button class="close-sidebar" id="closeSidebar">✕</button>
   </div>
 
   <nav class="sidebar-nav">
@@ -26,36 +34,53 @@
     <a class="nav-item" data-page="customers"><i class="fa fa-users"></i> Müşteriler</a>
     <a class="nav-item" data-page="matching"><i class="fa fa-bolt"></i> Eşleştirme</a>
   </nav>
+
 </aside>
 
 <!-- MAIN -->
 <main class="main-content">
 
+  <!-- TOPBAR -->
   <header class="topbar">
+
+    <button class="mobile-btn" id="openSidebar">
+      <i class="fa fa-bars"></i>
+    </button>
+
     <div class="page-title" id="pageTitle">Dashboard</div>
+
   </header>
 
+  <!-- CONTENT -->
   <section class="page-content">
 
     <!-- DASHBOARD -->
     <div class="page" id="dashboardPage">
+
       <div class="stats-grid">
-        <div class="stat-card blue">
-          <div class="stat-icon"><i class="fa fa-building"></i></div>
+
+        <div class="stat-card">
+          <div style="font-size:22px;color:#2563eb">
+            <i class="fa fa-building"></i>
+          </div>
           <div>
             <div class="stat-value" id="totalListings">0</div>
             <div class="stat-label">İlan</div>
           </div>
         </div>
 
-        <div class="stat-card green">
-          <div class="stat-icon"><i class="fa fa-users"></i></div>
+        <div class="stat-card">
+          <div style="font-size:22px;color:#22c55e">
+            <i class="fa fa-users"></i>
+          </div>
           <div>
             <div class="stat-value" id="totalCustomers">0</div>
             <div class="stat-label">Müşteri</div>
           </div>
         </div>
+
       </div>
+
     </div>
 
     <!-- PORTFOLIO -->
@@ -65,18 +90,23 @@
 
     <!-- CUSTOMERS -->
     <div class="page hidden" id="customersPage">
+
       <div class="customers-table-wrapper">
         <table class="data-table">
+
           <thead>
             <tr>
               <th>İsim</th>
-              <th>Telefon</th>
+              <th>İletişim</th>
               <th>Durum</th>
             </tr>
           </thead>
+
           <tbody id="customerTable"></tbody>
+
         </table>
       </div>
+
     </div>
 
     <!-- MATCHING -->
@@ -85,8 +115,11 @@
     </div>
 
   </section>
+
 </main>
 
+<!-- JS -->
 <script src="app.js"></script>
+
 </body>
 </html>
