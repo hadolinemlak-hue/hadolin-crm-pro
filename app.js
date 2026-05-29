@@ -1,161 +1,108 @@
-const API_URL = "https://raw.githubusercontent.com/KULLANICI_ADIN/repo/main/data.json";
+let state = {
+  listings: [],
+  customers: []
+};
 
-let listings = [];
-let customers = [];
+/* ===== INIT ===== */
+document.addEventListener("DOMContentLoaded", () => {
+  loadData();
+  setupNav();
+});
 
-let currentPage = 1;
-const perPage = 12;
-
-/* ================= FETCH DATA ================= */
-async function fetchData(){
-  try{
-    const res = await fetch(API_URL);
+/* ===== DATA LOAD (GitHub JSON + fallback) ===== */
+async function loadData() {
+  try {
+    // GitHub raw JSON (bunu sen değiştirirsin)
+    const res = await fetch("data.json");
     const data = await res.json();
 
-    listings = data.listings;
-    customers = data.customers;
+    state.listings = data.listings || [];
+    state.customers = data.customers || [];
 
-    renderListings();
-    renderCustomers();
-  }catch(err){
-    console.error("Data load error:",err);
+  } catch (e) {
+    console.log("GitHub data yok, local fallback");
+
+    state.listings = JSON.parse(localStorage.getItem("listings") || "[]");
+    state.customers = JSON.parse(localStorage.getItem("customers") || "[]");
   }
+
+  renderAll();
 }
 
-/* ================= LISTINGS ================= */
-function renderListings(){
-  const container = document.getElementById("listings");
-  container.innerHTML = "";
+/* ===== RENDER ===== */
+function renderAll() {
+  renderStats();
+  renderListings();
+  renderCustomers();
+}
 
-  const start = (currentPage-1)*perPage;
-  const pageItems = listings.slice(start,start+perPage);
+/* ===== STATS ===== */
+function renderStats() {
+  document.getElementById("totalListings").innerText = state.listings.length;
+  document.getElementById("totalCustomers").innerText = state.customers.length;
+}
 
-  const frag = document.createDocumentFragment();
+/* ===== LISTINGS ===== */
+function renderListings() {
+  const grid = document.getElementById("portfolioGrid");
+  if (!grid) return;
 
-  pageItems.forEach(item=>{
-    const div = document.createElement("div");
-    div.className="card";
+  grid.innerHTML = "";
 
-    const phoneClean = item.phone.replace(/\D/g,"");
+  state.listings.forEach(item => {
+    grid.innerHTML += `
+      <div class="card">
+        <h3>${item.title}</h3>
+        <p>${item.price} ₺</p>
+        <p>${item.location || ""}</p>
+      </div>
+    `;
+  });
+}
 
-    div.innerHTML=`
-      <img src="${item.img}" loading="lazy"/>
-      <div class="card-body">
-        <div class="title">${item.title}</div>
-        <div class="price">${item.price}</div>
+/* ===== CUSTOMERS ===== */
+function renderCustomers() {
+  const tbody = document.getElementById("customerTable");
+  if (!tbody) return;
 
-        <div style="margin-top:8px; display:flex; gap:6px;">
-          <a class="btn btn-call" href="tel:${item.phone}">
+  tbody.innerHTML = "";
+
+  state.customers.forEach(c => {
+
+    const phone = c.phone || "";
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${c.name}</td>
+
+        <td>
+          <a class="btn btn-call" href="tel:${phone}">
             Ara
           </a>
 
-          <a class="btn btn-wa"
-             target="_blank"
-             href="https://wa.me/${phoneClean}">
+          <a class="btn btn-whatsapp" target="_blank"
+             href="https://wa.me/${phone.replace(/\D/g,'')}">
             WhatsApp
           </a>
-        </div>
-      </div>
+        </td>
+
+        <td>${c.status || "aktif"}</td>
+      </tr>
     `;
-
-    frag.appendChild(div);
   });
-
-  container.appendChild(frag);
-
-  renderPagination();
 }
 
-/* ================= PAGINATION ================= */
-function renderPagination(){
-  const el = document.getElementById("pagination");
-  el.innerHTML="";
+/* ===== NAVIGATION ===== */
+function setupNav() {
+  document.querySelectorAll(".nav-item").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
 
-  const pages = Math.ceil(listings.length / perPage);
+      const page = btn.dataset.page;
+      document.getElementById(page + "Page").classList.remove("hidden");
 
-  for(let i=1;i<=pages;i++){
-    const btn = document.createElement("button");
-    btn.className="page-btn"+(i===currentPage?" active":"");
-    btn.textContent=i;
-
-    btn.onclick=()=>{
-      currentPage=i;
-      renderListings();
-    };
-
-    el.appendChild(btn);
-  }
-}
-
-/* ================= CUSTOMERS ================= */
-function renderCustomers(){
-  const tbody = document.getElementById("customers");
-  tbody.innerHTML="";
-
-  const frag = document.createDocumentFragment();
-
-  customers.forEach(c=>{
-    const tr = document.createElement("tr");
-
-    const clean = c.phone.replace(/\D/g,"");
-
-    tr.innerHTML=`
-      <td>${c.name}</td>
-      <td>
-        <a href="tel:${c.phone}">${c.phone}</a>
-      </td>
-      <td>
-        <a class="btn btn-call" href="tel:${c.phone}">Ara</a>
-        <a class="btn btn-wa"
-           target="_blank"
-           href="https://wa.me/${clean}">
-           WhatsApp
-        </a>
-      </td>
-    `;
-
-    frag.appendChild(tr);
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+      btn.classList.add("active");
+    });
   });
-
-  tbody.appendChild(frag);
 }
-
-/* ================= SEARCH ================= */
-document.getElementById("search").addEventListener("input",(e)=>{
-  const q = e.target.value.toLowerCase();
-
-  const filtered = listings.filter(x =>
-    x.title.toLowerCase().includes(q)
-  );
-
-  const container = document.getElementById("listings");
-  container.innerHTML="";
-
-  filtered.slice(0,perPage).forEach(item=>{
-    const div = document.createElement("div");
-    div.className="card";
-
-    const clean = item.phone.replace(/\D/g,"");
-
-    div.innerHTML=`
-      <img src="${item.img}" loading="lazy"/>
-      <div class="card-body">
-        <div class="title">${item.title}</div>
-        <div class="price">${item.price}</div>
-
-        <div style="margin-top:8px;">
-          <a class="btn btn-call" href="tel:${item.phone}">Ara</a>
-          <a class="btn btn-wa" target="_blank"
-             href="https://wa.me/${clean}">
-             WhatsApp
-          </a>
-        </div>
-      </div>
-    `;
-
-    container.appendChild(div);
-  });
-});
-
-/* ================= INIT ================= */
-fetchData();
