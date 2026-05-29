@@ -1,0 +1,17 @@
+{
+  "listings": [
+    {
+      "id": 1,
+      "title": "3+1 Daire Merkez",
+      "price": "2.500.000 ₺",
+      "phone": "+905555555555",
+      "img": "https://picsum.photos/400/300?1"
+    }
+  ],
+  "customers": [
+    {
+      "name": "Ahmet Yılmaz",
+      "phone": "+905555555555"
+    }
+  ]
+}
