@@ -1,57 +1,90 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>İlan CRM</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hadolin CRM Pro</title>
 
-<link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
 </head>
 
 <body>
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
-  <h2>CRM</h2>
-  <nav class="nav">
-    <a href="#">İlanlar</a>
-    <a href="#">Müşteriler</a>
+  <div class="sidebar-header">
+    <div class="logo">
+      <i class="fa-solid fa-building"></i>
+      <span>Hadolin CRM</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="nav-item active" data-page="dashboard"><i class="fa fa-home"></i> Dashboard</a>
+    <a class="nav-item" data-page="portfolios"><i class="fa fa-list"></i> İlanlar</a>
+    <a class="nav-item" data-page="customers"><i class="fa fa-users"></i> Müşteriler</a>
+    <a class="nav-item" data-page="matching"><i class="fa fa-bolt"></i> Eşleştirme</a>
   </nav>
 </aside>
 
 <!-- MAIN -->
-<main class="main">
+<main class="main-content">
 
   <header class="topbar">
-    <h3>İlanlar</h3>
-    <input id="search" class="search" placeholder="Ara..." />
+    <div class="page-title" id="pageTitle">Dashboard</div>
   </header>
 
-  <section class="content">
+  <section class="page-content">
 
-    <!-- LISTINGS -->
-    <div id="listings" class="grid"></div>
+    <!-- DASHBOARD -->
+    <div class="page" id="dashboardPage">
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-icon"><i class="fa fa-building"></i></div>
+          <div>
+            <div class="stat-value" id="totalListings">0</div>
+            <div class="stat-label">İlan</div>
+          </div>
+        </div>
 
-    <div id="pagination" class="pagination"></div>
+        <div class="stat-card green">
+          <div class="stat-icon"><i class="fa fa-users"></i></div>
+          <div>
+            <div class="stat-value" id="totalCustomers">0</div>
+            <div class="stat-label">Müşteri</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PORTFOLIO -->
+    <div class="page hidden" id="portfoliosPage">
+      <div class="portfolio-grid" id="portfolioGrid"></div>
+    </div>
 
     <!-- CUSTOMERS -->
-    <h3 style="margin-top:40px;">Müşteriler</h3>
+    <div class="page hidden" id="customersPage">
+      <div class="customers-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>İsim</th>
+              <th>Telefon</th>
+              <th>Durum</th>
+            </tr>
+          </thead>
+          <tbody id="customerTable"></tbody>
+        </table>
+      </div>
+    </div>
 
-    <div class="table">
-      <table>
-        <thead>
-          <tr>
-            <th>İsim</th>
-            <th>Telefon</th>
-            <th>İşlem</th>
-          </tr>
-        </thead>
-        <tbody id="customers"></tbody>
-      </table>
+    <!-- MATCHING -->
+    <div class="page hidden" id="matchingPage">
+      <div class="matching-container" id="matchingContainer"></div>
     </div>
 
   </section>
-
 </main>
 
 <script src="app.js"></script>
