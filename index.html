@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo">
@@ -44,105 +43,85 @@
                     <a href="#" class="nav-item" data-page="matching">
                         <i class="fas fa-handshake"></i>
                         <span>Eşleştirme</span>
+                        <span class="badge" id="notifBadge" style="display: none;">0</span>
                     </a>
                 </li>
             </ul>
         </nav>
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <div class="user-avatar"><i class="fas fa-user-tie"></i></div>
-                <div>
-                    <div class="user-name">Emlak Danışmanı</div>
-                    <div class="user-role">Yönetici</div>
-                </div>
-            </div>
-        </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="main-content" id="mainContent">
-        <!-- Top Bar -->
+    <div class="main-content">
         <header class="topbar">
             <div class="topbar-left">
                 <button class="mobile-menu-btn" id="mobileMenuBtn">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                <h1 id="pageTitle">Dashboard</h1>
             </div>
             <div class="topbar-right">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Ara..." id="globalSearch">
+                    <input type="text" id="globalSearch" placeholder="Sistemde hızlı ara...">
                 </div>
-                <button class="notification-btn">
-                    <i class="fas fa-bell"></i>
-                    <span class="badge" id="notifBadge">0</span>
-                </button>
             </div>
         </header>
 
-        <!-- Page Content -->
-        <div class="page-content">
-            <!-- DASHBOARD -->
-            <section class="page" id="page-dashboard">
+        <main class="content-body">
+            
+            <div id="page-dashboard" class="page">
                 <div class="stats-grid">
-                    <div class="stat-card blue">
-                        <div class="stat-icon"><i class="fas fa-home"></i></div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="stat-portfolios">0</div>
-                            <div class="stat-label">Toplam Portföy</div>
+                    <div class="stat-card">
+                        <div class="stat-icon portfolio"><i class="fas fa-home"></i></div>
+                        <div class="stat-details">
+                            <h3 id="stat-portfolios">0</h3>
+                            <p>Toplam Portföy</p>
                         </div>
                     </div>
-                    <div class="stat-card green">
-                        <div class="stat-icon"><i class="fas fa-users"></i></div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="stat-customers">0</div>
-                            <div class="stat-label">Aktif Müşteri</div>
+                    <div class="stat-card">
+                        <div class="stat-icon customer"><i class="fas fa-users"></i></div>
+                        <div class="stat-details">
+                            <h3 id="stat-customers">0</h3>
+                            <p>Aktif Müşteriler</p>
                         </div>
                     </div>
-                    <div class="stat-card orange">
-                        <div class="stat-icon"><i class="fas fa-handshake"></i></div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="stat-matches">0</div>
-                            <div class="stat-label">Eşleştirme</div>
+                    <div class="stat-card">
+                        <div class="stat-icon match"><i class="fas fa-handshake"></i></div>
+                        <div class="stat-details">
+                            <h3 id="stat-matches">0</h3>
+                            <p>Eşleşen Talepler</p>
                         </div>
                     </div>
-                    <div class="stat-card purple">
-                        <div class="stat-icon"><i class="fas fa-tags"></i></div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="stat-satilik">0</div>
-                            <div class="stat-label">Satılık Portföy</div>
+                    <div class="stat-card">
+                        <div class="stat-icon sale"><i class="fas fa-tags"></i></div>
+                        <div class="stat-details">
+                            <h3 id="stat-satilik">0</h3>
+                            <p>Satılık İlanlar</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="dashboard-grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><i class="fas fa-clock"></i> Son Eklenen Portföyler</h3>
-                            <a href="#" class="btn-link" data-page="portfolios">Tümünü Gör</a>
+                    <div class="dashboard-box">
+                        <div class="box-header">
+                            <h3>Son Eklenen Portföyler</h3>
+                            <button class="btn btn-link" data-page="portfolios">Tümünü Gör</button>
                         </div>
-                        <div class="card-body" id="recentPortfolios">
-                            <div class="empty-state"><i class="fas fa-home"></i><p>Henüz portföy eklenmemiş</p></div>
-                        </div>
+                        <div class="box-content" id="recentPortfolios"></div>
                     </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><i class="fas fa-star"></i> Son Müşteriler</h3>
-                            <a href="#" class="btn-link" data-page="customers">Tümünü Gör</a>
+                    <div class="dashboard-box">
+                        <div class="box-header">
+                            <h3>Son Eklenen Müşteriler</h3>
+                            <button class="btn btn-link" data-page="customers">Tümünü Gör</button>
                         </div>
-                        <div class="card-body" id="recentCustomers">
-                            <div class="empty-state"><i class="fas fa-users"></i><p>Henüz müşteri eklenmemiş</p></div>
-                        </div>
+                        <div class="box-content" id="recentCustomers"></div>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <!-- PORTFOLIOS -->
-            <section class="page hidden" id="page-portfolios">
-                <div class="page-actions">
+            <div id="page-portfolios" class="page hidden">
+                <div class="page-header">
                     <div class="filter-bar">
-                        <select id="filterTur" class="filter-select">
+                        <select id="filterTur" class="form-control">
                             <option value="">Tüm Türler</option>
                             <option value="daire">Daire</option>
                             <option value="arsa">Arsa</option>
@@ -150,8 +129,8 @@
                             <option value="fabrika_arsasi">Fabrika Arsası</option>
                             <option value="fabrika">Fabrika</option>
                         </select>
-                        <select id="filterDurum" class="filter-select">
-                            <option value="">Tümü</option>
+                        <select id="filterDurum" class="form-control">
+                            <option value="">Tüm Durumlar</option>
                             <option value="satilik">Satılık</option>
                             <option value="kiralik">Kiralık</option>
                         </select>
@@ -160,22 +139,22 @@
                         <i class="fas fa-plus"></i> Portföy Ekle
                     </button>
                 </div>
-                <div class="portfolio-grid" id="portfolioGrid">
-                    <div class="empty-state full-width">
-                        <i class="fas fa-home"></i>
-                        <p>Henüz portföy eklenmemiş</p>
-                        <button class="btn btn-primary" id="addPortfolioBtnEmpty">
-                            <i class="fas fa-plus"></i> İlk Portföyü Ekle
-                        </button>
-                    </div>
+                <div class="portfolio-grid" id="portfolioGrid"></div>
+                <div class="empty-state hidden" id="portfolioEmptyState">
+                    <i class="fas fa-home"></i>
+                    <p>Henüz portföy eklenmemiş.</p>
+                    <button class="btn btn-primary" id="addPortfolioBtnEmpty">İlk Portföyü Ekle</button>
                 </div>
-            </section>
+            </div>
 
-            <!-- CUSTOMERS -->
-            <section class="page hidden" id="page-customers">
-                <div class="page-actions">
+            <div id="page-customers" class="page hidden">
+                <div class="page-header">
                     <div class="filter-bar">
-                        <select id="filterCustTur" class="filter-select">
+                        <div class="inline-search-wrapper">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="customerSearchInput" placeholder="Müşteri adı veya telefon ara...">
+                        </div>
+                        <select id="filterCustTur" class="form-control">
                             <option value="">Tüm Türler</option>
                             <option value="daire">Daire</option>
                             <option value="arsa">Arsa</option>
@@ -183,8 +162,8 @@
                             <option value="fabrika_arsasi">Fabrika Arsası</option>
                             <option value="fabrika">Fabrika</option>
                         </select>
-                        <select id="filterCustDurum" class="filter-select">
-                            <option value="">Tümü</option>
+                        <select id="filterCustDurum" class="form-control">
+                            <option value="">Tüm Durumlar</option>
                             <option value="satilik">Satılık</option>
                             <option value="kiralik">Kiralık</option>
                         </select>
@@ -194,75 +173,60 @@
                     </button>
                 </div>
                 <div class="customers-table-wrapper">
-                    <table class="data-table" id="customersTable">
+                    <table class="customers-table">
                         <thead>
                             <tr>
-                                <th>Ad Soyad</th>
-                                <th>Telefon</th>
+                                <th>Müşteri Adı</th>
+                                <th>Telefon / İletişim</th>
                                 <th>İstek Türü</th>
-                                <th>Durum</th>
+                                <th>İstek Durumu</th>
                                 <th>Bütçe Aralığı</th>
                                 <th>Tercih Lokasyon</th>
                                 <th>İşlemler</th>
                             </tr>
                         </thead>
-                        <tbody id="customersTableBody">
-                            <tr>
-                                <td colspan="7" class="empty-td">
-                                    <div class="empty-state">
-                                        <i class="fas fa-users"></i>
-                                        <p>Henüz müşteri eklenmemiş</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
+                        <tbody id="customersTableBody"></tbody>
                     </table>
                 </div>
-            </section>
+            </div>
 
-            <!-- MATCHING -->
-            <section class="page hidden" id="page-matching">
+            <div id="page-matching" class="page hidden">
                 <div class="matching-container">
                     <div class="matching-header">
-                        <h2><i class="fas fa-magic"></i> Akıllı Eşleştirme</h2>
-                        <p>Müşterilerin ihtiyaçlarına göre uygun portföyleri otomatik olarak eşleştirin</p>
+                        <h2>Akıllı Portföy Eşleştirme</h2>
+                        <p>Müşterilerinizin bütçe ve kriterlerine tam uyan gayrimenkulleri listeler.</p>
                     </div>
-                    <div class="matching-grid" id="matchingGrid">
-                        <div class="empty-state">
-                            <i class="fas fa-handshake"></i>
-                            <p>Eşleştirme için müşteri ve portföy ekleyin</p>
-                        </div>
-                    </div>
+                    <div class="matching-grid" id="matchingGrid"></div>
                 </div>
-            </section>
-        </div>
-    </main>
+            </div>
 
-    <!-- MODAL: Portfolio Form -->
+        </main>
+    </div>
+
     <div class="modal-overlay" id="portfolioModal">
         <div class="modal large">
             <div class="modal-header">
                 <h2 id="portfolioModalTitle"><i class="fas fa-home"></i> Portföy Ekle</h2>
                 <button class="modal-close" data-modal="portfolioModal"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body">
-                <form id="portfolioForm">
-                    <input type="hidden" id="portfolioId">
+            <form id="portfolioForm">
+                <input type="hidden" id="portfolioId">
+                <div class="modal-body">
                     <div class="form-tabs">
-                        <button type="button" class="form-tab active" data-tab="info">Genel Bilgiler</button>
-                        <button type="button" class="form-tab" data-tab="photos">Fotoğraflar</button>
-                        <button type="button" class="form-tab" data-tab="details">Detaylar</button>
+                        <button type="button" class="form-tab active" data-tab="genel">Genel Bilgiler</button>
+                        <button type="button" class="form-tab" data-tab="detay">Detaylar & Adres</button>
+                        <button type="button" class="form-tab" data-tab="fotograflar">Fotoğraflar (Maks 6)</button>
                     </div>
-                    <!-- Tab: Genel Bilgiler -->
-                    <div class="tab-content active" id="tab-info">
+
+                    <div class="tab-content active" id="tab-genel">
                         <div class="form-grid">
                             <div class="form-group full">
-                                <label>Portföy Başlığı *</label>
-                                <input type="text" id="p_baslik" placeholder="Örn: Kadıköy'de 3+1 Daire" required>
+                                <label for="p_baslik">İlan Başlığı *</label>
+                                <input type="text" id="p_baslik" class="form-control" required placeholder="Örn: Cadde Üzeri Lüks 3+1 Daire">
                             </div>
                             <div class="form-group">
-                                <label>Emlak Türü *</label>
-                                <select id="p_tur" required>
+                                <label for="p_tur">Gayrimenkul Türü *</label>
+                                <select id="p_tur" class="form-control" required>
                                     <option value="">Seçiniz</option>
                                     <option value="daire">Daire</option>
                                     <option value="arsa">Arsa</option>
@@ -272,135 +236,113 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>İlan Durumu *</label>
-                                <select id="p_durum" required>
+                                <label for="p_durum">Pazarlama Durumu *</label>
+                                <select id="p_durum" class="form-control" required>
                                     <option value="">Seçiniz</option>
                                     <option value="satilik">Satılık</option>
                                     <option value="kiralik">Kiralık</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Fiyat (₺) *</label>
-                                <input type="number" id="p_fiyat" placeholder="0" required min="0">
+                                <label for="p_fiyat">Fiyat (₺) *</label>
+                                <input type="number" id="p_fiyat" class="form-control" required placeholder="0">
                             </div>
                             <div class="form-group">
-                                <label>Alan (m²)</label>
-                                <input type="number" id="p_alan" placeholder="0" min="0">
-                            </div>
-                            <div class="form-group">
-                                <label>İl *</label>
-                                <input type="text" id="p_il" placeholder="Örn: İstanbul" required>
-                            </div>
-                            <div class="form-group">
-                                <label>İlçe *</label>
-                                <input type="text" id="p_ilce" placeholder="Örn: Kadıköy" required>
-                            </div>
-                            <div class="form-group full">
-                                <label>Adres</label>
-                                <input type="text" id="p_adres" placeholder="Tam adres">
+                                <label for="p_alan">Net Alan (m²)</label>
+                                <input type="number" id="p_alan" class="form-control" placeholder="0">
                             </div>
                         </div>
                     </div>
-                    <!-- Tab: Fotoğraflar -->
-                    <div class="tab-content" id="tab-photos">
-                        <div class="photo-upload-area" id="photoUploadArea">
-                            <div class="upload-placeholder" id="uploadPlaceholder">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p>Fotoğraf eklemek için tıklayın veya sürükleyin</p>
-                                <span>JPG, PNG, WEBP desteklenir</span>
-                                <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
-                                <button type="button" class="btn btn-secondary" id="photoSelectBtn">
-                                    <i class="fas fa-images"></i> Fotoğraf Seç
-                                </button>
-                            </div>
-                        </div>
-                        <div class="photo-preview-grid" id="photoPreviewGrid"></div>
-                        <div class="form-group" style="margin-top:16px">
-                            <label>Veya Fotoğraf URL'si Ekle</label>
-                            <div class="url-input-group">
-                                <input type="text" id="photoUrlInput" placeholder="https://...">
-                                <button type="button" class="btn btn-secondary" id="addPhotoUrlBtn">Ekle</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Tab: Detaylar -->
-                    <div class="tab-content" id="tab-details">
+
+                    <div class="tab-content" id="tab-detay">
                         <div class="form-grid">
                             <div class="form-group">
-                                <label>Oda Sayısı</label>
-                                <select id="p_oda">
-                                    <option value="">Seçiniz</option>
-                                    <option value="1+0">1+0 Stüdyo</option>
-                                    <option value="1+1">1+1</option>
-                                    <option value="2+1">2+1</option>
-                                    <option value="3+1">3+1</option>
-                                    <option value="4+1">4+1</option>
-                                    <option value="4+2">4+2</option>
-                                    <option value="5+">5+ Oda</option>
-                                </select>
+                                <label for="p_il">Şehir (İl) *</label>
+                                <input type="text" id="p_il" class="form-control" required placeholder="Örn: İstanbul">
                             </div>
                             <div class="form-group">
-                                <label>Kat</label>
-                                <input type="text" id="p_kat" placeholder="Örn: 3. Kat">
+                                <label for="p_ilce">İlçe *</label>
+                                <input type="text" id="p_ilce" class="form-control" required placeholder="Örn: Kadıköy">
                             </div>
                             <div class="form-group">
-                                <label>Isıtma</label>
-                                <select id="p_isitma">
-                                    <option value="">Seçiniz</option>
-                                    <option value="dogalgaz">Doğalgaz</option>
-                                    <option value="merkezi">Merkezi</option>
+                                <label for="p_oda">Oda Sayısı</label>
+                                <input type="text" id="p_oda" class="form-control" placeholder="Örn: 3+1">
+                            </div>
+                            <div class="form-group">
+                                <label for="p_kat">Bulunduğu Kat</label>
+                                <input type="text" id="p_kat" class="form-control" placeholder="Örn: 4">
+                            </div>
+                            <div class="form-group">
+                                <label for="p_isitma">Isıtma Tipi</label>
+                                <select id="p_isitma" class="form-control">
+                                    <option value="yok">Seçiniz</option>
+                                    <option value="dogalgaz">Doğalgaz Kombi</option>
+                                    <option value="merkezi">Merkezi Sistem</option>
                                     <option value="klima">Klima</option>
                                     <option value="yerden">Yerden Isıtma</option>
-                                    <option value="yok">Isıtma Yok</option>
                                 </select>
                             </div>
                             <div class="form-group full">
-                                <label>Açıklama</label>
-                                <textarea id="p_aciklama" rows="5" placeholder="Portföy hakkında detaylı bilgi..."></textarea>
+                                <label for="p_adres">Açık Adres</label>
+                                <textarea id="p_adres" class="form-control" rows="2" placeholder="Mahalle, sokak, dış kapı no..."></textarea>
+                            </div>
+                            <div class="form-group full">
+                                <label for="p_aciklama">İlan Açıklaması</label>
+                                <textarea id="p_aciklama" class="form-control" rows="3" placeholder="Gayrimenkul hakkında detaylı açıklamalar..."></textarea>
                             </div>
                         </div>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-modal="portfolioModal">İptal</button>
-                <button class="btn btn-primary" id="savePortfolioBtn">
-                    <i class="fas fa-save"></i> Kaydet
-                </button>
-            </div>
+
+                    <div class="tab-content" id="tab-fotograflar">
+                        <div class="photo-upload-container">
+                            <div class="photo-upload-area" id="photoUploadArea">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Fotoğrafları buraya sürükleyin veya tıklayın</p>
+                                <span class="input-info">Maksimum 6 adet fotoğraf eklenebilir. Dosyalar otomatik optimize edilir.</span>
+                                <input type="file" id="photoInput" multiple accept="image/*" style="display: none;">
+                                <button type="button" class="btn btn-secondary btn-sm" id="photoSelectBtn" style="margin-top: 10px;">Dosya Seç</button>
+                            </div>
+                            <div class="photo-url-input-group">
+                                <input type="url" id="photoUrlInput" class="form-control" placeholder="Veya fotoğraf linki (URL) yapıştırın...">
+                                <button type="button" class="btn btn-primary" id="addPhotoUrlBtn">Ekle</button>
+                            </div>
+                            <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-modal="portfolioModal">İptal</button>
+                    <button type="submit" class="btn btn-primary" id="savePortfolioBtn"><i class="fas fa-save"></i> Kaydet</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- MODAL: Customer Form -->
     <div class="modal-overlay" id="customerModal">
         <div class="modal">
             <div class="modal-header">
                 <h2 id="customerModalTitle"><i class="fas fa-user-plus"></i> Müşteri Ekle</h2>
                 <button class="modal-close" data-modal="customerModal"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body">
-                <form id="customerForm">
-                    <input type="hidden" id="customerId">
+            <form id="customerForm">
+                <input type="hidden" id="customerId">
+                <div class="modal-body">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label>Ad *</label>
-                            <input type="text" id="c_ad" placeholder="Ad" required>
+                            <label for="c_ad">Müşteri Adı *</label>
+                            <input type="text" id="c_ad" class="form-control" required placeholder="Ahmet">
                         </div>
                         <div class="form-group">
-                            <label>Soyad *</label>
-                            <input type="text" id="c_soyad" placeholder="Soyad" required>
+                            <label for="c_soyad">Müşteri Soyadı *</label>
+                            <input type="text" id="c_soyad" class="form-control" required placeholder="Yılmaz">
+                        </div>
+                        <div class="form-group full">
+                            <label for="c_telefon">Telefon Numarası (Aranabilir) *</label>
+                            <input type="tel" id="c_telefon" class="form-control" required placeholder="0532 123 45 67">
                         </div>
                         <div class="form-group">
-                            <label>Cep Telefonu *</label>
-                            <input type="tel" id="c_telefon" placeholder="05XX XXX XX XX" required>
-                        </div>
-                        <div class="form-group">
-                            <label>E-posta</label>
-                            <input type="email" id="c_email" placeholder="ornek@email.com">
-                        </div>
-                        <div class="form-group">
-                            <label>İstediği Emlak Türü *</label>
-                            <select id="c_istek_tur" required>
+                            <label for="c_tur">Aradığı Gayrimenkul *</label>
+                            <select id="c_tur" class="form-control" required>
                                 <option value="">Seçiniz</option>
                                 <option value="daire">Daire</option>
                                 <option value="arsa">Arsa</option>
@@ -410,54 +352,39 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Satılık / Kiralık *</label>
-                            <select id="c_istek_durum" required>
+                            <label for="c_durum">Talep Durumu *</label>
+                            <select id="c_durum" class="form-control" required>
                                 <option value="">Seçiniz</option>
                                 <option value="satilik">Satılık</option>
                                 <option value="kiralik">Kiralık</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Min Bütçe (₺) *</label>
-                            <input type="number" id="c_butce_min" placeholder="0" required min="0">
+                            <label for="c_butce_min">Minimum Bütçe (₺)</label>
+                            <input type="number" id="c_butce_min" class="form-control" placeholder="0">
                         </div>
                         <div class="form-group">
-                            <label>Max Bütçe (₺) *</label>
-                            <input type="number" id="c_butce_max" placeholder="0" required min="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Tercih Edilen İl</label>
-                            <input type="text" id="c_tercih_il" placeholder="Örn: İstanbul">
-                        </div>
-                        <div class="form-group">
-                            <label>Tercih Edilen İlçe</label>
-                            <input type="text" id="c_tercih_ilce" placeholder="Örn: Kadıköy">
+                            <label for="c_butce_max">Maksimum Bütçe (₺) *</label>
+                            <input type="number" id="c_butce_max" class="form-control" required placeholder="0">
                         </div>
                         <div class="form-group full">
-                            <label>Notlar</label>
-                            <textarea id="c_notlar" rows="3" placeholder="Müşteri hakkında ek notlar..."></textarea>
+                            <label for="c_lokasyon">Tercih Ettiği Lokasyonlar</label>
+                            <input type="text" id="c_lokasyon" class="form-control" placeholder="Örn: Kadıköy, Beşiktaş">
                         </div>
-                        <div class="form-group">
-                            <label>Müşteri Durumu</label>
-                            <select id="c_durum">
-                                <option value="aktif">Aktif</option>
-                                <option value="pasif">Pasif</option>
-                                <option value="tamamlandi">Tamamlandı</option>
-                            </select>
+                        <div class="form-group full">
+                            <label for="c_notlar">Müşteri Özel Notları</label>
+                            <textarea id="c_notlar" class="form-control" rows="2" placeholder="Yatırımlık düşünüyor, acelesi var vb..."></textarea>
                         </div>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-modal="customerModal">İptal</button>
-                <button class="btn btn-primary" id="saveCustomerBtn">
-                    <i class="fas fa-save"></i> Kaydet
-                </button>
-            </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-modal="customerModal">İptal</button>
+                    <button type="submit" class="btn btn-primary" id="saveCustomerBtn"><i class="fas fa-save"></i> Müşteriyi Kaydet</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- MODAL: Portfolio Detail -->
     <div class="modal-overlay" id="portfolioDetailModal">
         <div class="modal large">
             <div class="modal-header">
@@ -472,7 +399,6 @@
         </div>
     </div>
 
-    <!-- MODAL: Match Result -->
     <div class="modal-overlay" id="matchModal">
         <div class="modal large">
             <div class="modal-header">
@@ -486,10 +412,8 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Overlay for mobile -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <script src="js/app.js"></script>
