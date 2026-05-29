@@ -8,7 +8,7 @@ const state = {
     currentPage: 'dashboard',
     editingPortfolio: null,
     editingCustomer: null,
-    tempPhotos: [], // { url, type: 'file'|'url' }
+    tempPhotos: [], // { url, type: 'file'|'url', file?, dataUrl? }
 };
 
 // ===== API HELPERS =====
@@ -85,14 +85,14 @@ function toast(msg, type = 'success') {
 }
 
 function openModal(id) {
-    const m = document.getElementById(id);
-    if(m) m.classList.add('active');
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
 function closeModal(id) {
-    const m = document.getElementById(id);
-    if(m) m.classList.remove('active');
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('active');
     document.body.style.overflow = '';
 }
 
@@ -112,24 +112,26 @@ function navigate(page) {
         dashboard: 'Dashboard', portfolios: 'Portföyler',
         customers: 'Müşteriler', matching: 'Eşleştirme'
     };
-    document.getElementById('pageTitle').textContent = titles[page] || page;
+    const titleEl = document.getElementById('pageTitle');
+    if (titleEl) titleEl.textContent = titles[page] || page;
 
-    if (page === 'dashboard') renderDashboard();
-    if (page === 'portfolios') renderPortfolios();
-    if (page === 'customers') renderCustomers();
-    if (page === 'matching') renderMatching();
-
+    // Sayfa geçişlerinde filtreleri temizle/yeniden uygula
+    applyFilters();
     closeMobileSidebar();
 }
 
 function openMobileSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebarOverlay').classList.add('active');
+    const sb = document.getElementById('sidebar');
+    const sbo = document.getElementById('sidebarOverlay');
+    if (sb) sb.classList.add('open');
+    if (sbo) sbo.classList.add('active');
 }
 
 function closeMobileSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('active');
+    const sb = document.getElementById('sidebar');
+    const sbo = document.getElementById('sidebarOverlay');
+    if (sb) sb.classList.remove('open');
+    if (sbo) sbo.classList.remove('active');
 }
 
 // ===== LOAD DATA =====
@@ -143,10 +145,11 @@ async function loadAll() {
         state.portfolios = pRes.data || [];
         state.customers = cRes.data || [];
         state.matches = mRes.data || [];
-        renderDashboard();
+        
+        applyFilters();
         updateNotifBadge();
     } catch (e) {
-        console.error(e);
+        console.error('Veri yükleme hatası:', e);
     }
 }
 
@@ -159,90 +162,122 @@ function updateNotifBadge() {
     }
 }
 
-// ===== SEARCH MTR ENGINE =====
-function handleGlobalSearch(val) {
-    const q = val.trim().toLowerCase();
+// ===== GLOBAL FILTER MANTIĞI (Kayıp/Çökme Önleyici Güvenli Filtreleme) =====
+function applyFilters() {
+    const searchInput = document.getElementById('globalSearch');
+    const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
     if (state.currentPage === 'dashboard') {
-        renderDashboard(); 
+        renderDashboard(query);
     } else if (state.currentPage === 'portfolios') {
-        renderPortfolios(document.getElementById('filterTur').value, document.getElementById('filterDurum').value, q);
+        const fTur = document.getElementById('filterTur')?.value || '';
+        const fDurum = document.getElementById('filterDurum')?.value || '';
+        renderPortfolios(fTur, fDurum, query);
     } else if (state.currentPage === 'customers') {
-        renderCustomers(document.getElementById('filterCustTur').value, document.getElementById('filterCustDurum').value, q);
+        const fCustTur = document.getElementById('filterCustTur')?.value || '';
+        const fCustDurum = document.getElementById('filterCustDurum')?.value || '';
+        renderCustomers(fCustTur, fCustDurum, query);
     } else if (state.currentPage === 'matching') {
-        renderMatching(q);
+        renderMatching(query);
     }
 }
 
 // ===== DASHBOARD =====
-function renderDashboard() {
-    document.getElementById('stat-portfolios').textContent = state.portfolios.length;
-    document.getElementById('stat-customers').textContent = state.customers.filter(c => c.durum !== 'tamamlandi').length;
-    document.getElementById('stat-matches').textContent = state.matches.length;
-    document.getElementById('stat-satilik').textContent = state.portfolios.filter(p => p.durum === 'satilik').length;
+function renderDashboard(query = '') {
+    const sPort = document.getElementById('stat-portfolios');
+    const sCust = document.getElementById('stat-customers');
+    const sMatch = document.getElementById('stat-matches');
+    const sSatilik = document.getElementById('stat-satilik');
 
+    if (sPort) sPort.textContent = state.portfolios.length;
+    if (sCust) sCust.textContent = state.customers.filter(c => c.durum !== 'tamamlandi').length;
+    if (sMatch) sMatch.textContent = state.matches.length;
+    if (sSatilik) sSatilik.textContent = state.portfolios.filter(p => p.durum === 'satilik').length;
+
+    // Portföy listesi
+    let filteredPortfolios = [...state.portfolios];
+    if (query) {
+        filteredPortfolios = filteredPortfolios.filter(p => 
+            (p.baslik && p.baslik.toLowerCase().includes(query)) ||
+            (p.il && p.il.toLowerCase().includes(query)) ||
+            (p.ilce && p.ilce.toLowerCase().includes(query))
+        );
+    }
+    const recent = filteredPortfolios.sort((a, b) => b.created_at - a.created_at).slice(0, 5);
     const rp = document.getElementById('recentPortfolios');
-    const recent = [...state.portfolios].sort((a, b) => b.created_at - a.created_at).slice(0, 5);
-    if (recent.length === 0) {
-        rp.innerHTML = '<div class="empty-state"><i class="fas fa-home"></i><p>Henüz portföy eklenmemiş</p></div>';
-    } else {
-        rp.innerHTML = recent.map(p => {
-            const photo = getFirstPhoto(p.fotograflar);
-            return `
-            <div class="recent-item" onclick="navigate('portfolios')">
-                <div class="recent-thumb">
-                    ${photo ? `<img src="${photo}" alt="">` : `<i class="fas fa-home"></i>`}
-                </div>
-                <div class="recent-info">
-                    <div class="recent-title">${p.baslik || 'İsimsiz Portföy'}</div>
-                    <div class="recent-sub">${p.ilce || ''} ${p.il || ''} · ${TUR_LABELS[p.tur] || p.tur}</div>
-                </div>
-                <div class="recent-price">${formatPrice(p.fiyat)}</div>
-            </div>`;
-        }).join('');
+    if (rp) {
+        if (recent.length === 0) {
+            rp.innerHTML = '<div class="empty-state"><i class="fas fa-home"></i><p>Uygun portföy bulunamadı</p></div>';
+        } else {
+            rp.innerHTML = recent.map(p => {
+                const photo = getFirstPhoto(p.fotograflar);
+                return `
+                <div class="recent-item" onclick="navigate('portfolios')">
+                    <div class="recent-thumb">
+                        ${photo ? `<img src="${photo}" alt="">` : `<i class="fas fa-home"></i>`}
+                    </div>
+                    <div class="recent-info">
+                        <div class="recent-title">${p.baslik || 'İsimsiz Portföy'}</div>
+                        <div class="recent-sub">${p.ilce || ''} ${p.il || ''} · ${TUR_LABELS[p.tur] || p.tur}</div>
+                    </div>
+                    <div class="recent-price">${formatPrice(p.fiyat)}</div>
+                </div>`;
+            }).join('');
+        }
     }
 
+    // Müşteri listesi
+    let filteredCustomers = [...state.customers];
+    if (query) {
+        filteredCustomers = filteredCustomers.filter(c => 
+            (c.ad && c.ad.toLowerCase().includes(query)) ||
+            (c.soyad && c.soyad.toLowerCase().includes(query)) ||
+            (c.telefon && c.telefon.includes(query))
+        );
+    }
+    const recentC = filteredCustomers.sort((a, b) => b.created_at - a.created_at).slice(0, 5);
     const rc = document.getElementById('recentCustomers');
-    const recentC = [...state.customers].sort((a, b) => b.created_at - a.created_at).slice(0, 5);
-    if (recentC.length === 0) {
-        rc.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>Henüz müşteri eklenmemiş</p></div>';
-    } else {
-        rc.innerHTML = recentC.map(c => `
-            <div class="recent-item" onclick="navigate('customers')">
-                <div class="recent-thumb"><i class="fas fa-user"></i></div>
-                <div class="recent-info">
-                    <div class="recent-title">${c.ad} ${c.soyad}</div>
-                    <div class="recent-sub">${TUR_LABELS[c.istek_tur] || ''} · ${DURUM_LABELS[c.istek_durum] || ''}</div>
-                </div>
-                <div style="font-size:.75rem;color:var(--text-muted)">${formatPrice(c.butce_min)} - ${formatPrice(c.butce_max)}</div>
-            </div>`).join('');
+    if (rc) {
+        if (recentC.length === 0) {
+            rc.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>Uygun müşteri bulunamadı</p></div>';
+        } else {
+            rc.innerHTML = recentC.map(c => `
+                <div class="recent-item" onclick="navigate('customers')">
+                    <div class="recent-thumb"><i class="fas fa-user"></i></div>
+                    <div class="recent-info">
+                        <div class="recent-title">${c.ad} ${c.soyad}</div>
+                        <div class="recent-sub">${TUR_LABELS[c.istek_tur] || ''} · ${DURUM_LABELS[c.istek_durum] || ''}</div>
+                    </div>
+                    <div style="font-size:.75rem;color:var(--text-muted)">${formatPrice(c.butce_min)} - ${formatPrice(c.butce_max)}</div>
+                </div>`).join('');
+        }
     }
 }
 
 // ===== PORTFOLIOS =====
-function renderPortfolios(filterTur = '', filterDurum = '', searchQ = '') {
+function renderPortfolios(filterTur = '', filterDurum = '', query = '') {
     const grid = document.getElementById('portfolioGrid');
+    const emptyState = document.getElementById('portfolioEmptyState');
+    if (!grid) return;
+
     let list = state.portfolios;
     if (filterTur) list = list.filter(p => p.tur === filterTur);
     if (filterDurum) list = list.filter(p => p.durum === filterDurum);
-    if (searchQ) {
+    if (query) {
         list = list.filter(p => 
-            (p.baslik && p.baslik.toLowerCase().includes(searchQ)) ||
-            (p.ilce && p.ilce.toLowerCase().includes(searchQ)) ||
-            (p.il && p.il.toLowerCase().includes(searchQ))
+            (p.baslik && p.baslik.toLowerCase().includes(query)) ||
+            (p.ilce && p.ilce.toLowerCase().includes(query)) ||
+            (p.il && p.il.toLowerCase().includes(query))
         );
     }
 
     if (list.length === 0) {
-        grid.innerHTML = `
-        <div class="empty-state full-width">
-            <i class="fas fa-home"></i>
-            <p>Portföy bulunamadı</p>
-            <button class="btn btn-primary" onclick="showPortfolioForm()">
-                <i class="fas fa-plus"></i> İlk Portföyü Ekle
-            </button>
-        </div>`;
+        grid.innerHTML = '';
+        if (emptyState) emptyState.classList.remove('hidden');
         return;
     }
+
+    if (emptyState) emptyState.classList.add('hidden');
 
     grid.innerHTML = list.map(p => {
         const photo = getFirstPhoto(p.fotograflar);
@@ -283,46 +318,52 @@ function renderPortfolios(filterTur = '', filterDurum = '', searchQ = '') {
 }
 
 function getPlaceholder() {
-    return `<div class="portfolio-image-placeholder"><i class="fas fa-building"></i><span>Fotoğraf Yüklenemedi</span></div>`;
+    return `<div class="portfolio-image-placeholder"><i class="fas fa-building"></i><span>Fotoğraf Eksik</span></div>`;
 }
 
 function showPortfolioDetail(id) {
     const p = state.portfolios.find(x => x.id === id);
     if (!p) return;
 
-    document.getElementById('detailModalTitle').innerHTML = `<i class="fas fa-home"></i> ${p.baslik || 'Portföy Detayı'}`;
-    document.getElementById('detailEditBtn').onclick = () => { closeModal('portfolioDetailModal'); editPortfolio(id); };
+    const titleEl = document.getElementById('detailModalTitle');
+    if (titleEl) titleEl.innerHTML = `<i class="fas fa-home"></i> ${p.baslik || 'Portföy Detayı'}`;
+    
+    const editBtn = document.getElementById('detailEditBtn');
+    if (editBtn) {
+        editBtn.onclick = () => { closeModal('portfolioDetailModal'); editPortfolio(id); };
+    }
 
     const photos = p.fotograflar || [];
     const content = `
         ${photos.length > 0 ? `
-        <div class="detail-images">
-            ${photos.map(url => `<img src="${url}" alt="" onclick="window.open('${url}','_blank')" style="cursor:pointer">`).join('')}
+        <div class="detail-images" style="display:flex; gap:8px; overflow-x:auto; margin-bottom:15px;">
+            ${photos.map(url => `<img src="${url}" alt="" style="height:120px; border-radius:6px; object-fit:cover;">`).join('')}
         </div>` : ''}
         <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-            <span class="badge-pill badge-${p.durum}" style="font-size:.8rem;padding:4px 12px">${DURUM_LABELS[p.durum] || p.durum}</span>
-            <span class="badge-pill badge-tur" style="font-size:.8rem;padding:4px 12px">${TUR_LABELS[p.tur] || p.tur}</span>
+            <span class="badge-pill badge-${p.durum}">${DURUM_LABELS[p.durum] || p.durum}</span>
+            <span class="badge-pill badge-tur">${TUR_LABELS[p.tur] || p.tur}</span>
         </div>
-        <div class="detail-price">${formatPrice(p.fiyat)}</div>
+        <div class="detail-price" style="font-size:1.4rem; font-weight:700; color:var(--primary); margin-bottom:15px;">${formatPrice(p.fiyat)}</div>
         <div class="detail-info-grid">
-            <div class="detail-info-item"><label>Konum</label><span><i class="fas fa-map-marker-alt" style="color:var(--primary)"></i> ${p.ilce || ''}${p.ilce && p.il ? ', ' : ''}${p.il || '-'}</span></div>
+            <div class="detail-info-item"><label>Konum</label><span>${p.ilce || ''} / ${p.il || '-'}</span></div>
             <div class="detail-info-item"><label>Alan</label><span>${p.alan ? p.alan + ' m²' : '-'}</span></div>
-            ${p.oda_sayisi ? `<div class="detail-info-item"><label>Oda Sayısı</label><span>${p.oda_sayisi}</span></div>` : ''}
-            ${p.kat ? `<div class="detail-info-item"><label>Kat</label><span>${p.kat}</span></div>` : ''}
-            ${p.isitma ? `<div class="detail-info-item"><label>Isıtma</label><span>${ISITMA_LABELS[p.isitma] || p.isitma}</span></div>` : ''}
-            ${p.adres ? `<div class="detail-info-item" style="grid-column:1/-1"><label>Adres</label><span>${p.adres}</span></div>` : ''}
+            <div class="detail-info-item"><label>Oda</label><span>${p.oda_sayisi || '-'}</span></div>
+            <div class="detail-info-item"><label>Kat</label><span>${p.kat || '-'}</span></div>
+            <div class="detail-info-item" style="grid-column:1/-1"><label>Açıklama</label><p>${p.aciklama || 'Açıklama yok.'}</p></div>
         </div>
-        ${p.aciklama ? `<div class="detail-info-item"><label style="font-size:.75rem;color:var(--text-muted);font-weight:600;display:block;margin-bottom:6px">AÇIKLAMA</label><div class="detail-description">${p.aciklama}</div></div>` : ''}
     `;
 
-    document.getElementById('portfolioDetailContent').innerHTML = content;
+    const detailContent = document.getElementById('portfolioDetailContent');
+    if (detailContent) detailContent.innerHTML = content;
     openModal('portfolioDetailModal');
 }
 
 function showPortfolioForm(id = null) {
     state.editingPortfolio = id;
     state.tempPhotos = [];
-    document.getElementById('photoPreviewGrid').innerHTML = '';
+    
+    const previewGrid = document.getElementById('photoPreviewGrid');
+    if (previewGrid) previewGrid.innerHTML = '';
 
     document.querySelectorAll('.form-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
     document.querySelectorAll('.tab-content').forEach((t, i) => t.classList.toggle('active', i === 0));
@@ -330,7 +371,9 @@ function showPortfolioForm(id = null) {
     if (id) {
         const p = state.portfolios.find(x => x.id === id);
         if (!p) return;
-        document.getElementById('portfolioModalTitle').innerHTML = `<i class="fas fa-edit"></i> Portföy Düzenle`;
+        const formTitle = document.getElementById('portfolioModalTitle');
+        if (formTitle) formTitle.innerHTML = `<i class="fas fa-edit"></i> Portföy Düzenle`;
+        
         document.getElementById('portfolioId').value = id;
         document.getElementById('p_baslik').value = p.baslik || '';
         document.getElementById('p_tur').value = p.tur || '';
@@ -342,14 +385,16 @@ function showPortfolioForm(id = null) {
         document.getElementById('p_adres').value = p.adres || '';
         document.getElementById('p_oda').value = p.oda_sayisi || '';
         document.getElementById('p_kat').value = p.kat || '';
-        document.getElementById('p_isitma').value = p.isitma || '';
+        document.getElementById('p_isitma').value = p.isitma || 'yok';
         document.getElementById('p_aciklama').value = p.aciklama || '';
+
         if (p.fotograflar && p.fotograflar.length > 0) {
             state.tempPhotos = p.fotograflar.map(url => ({ url, type: 'url' }));
             renderPhotoPreview();
         }
     } else {
-        document.getElementById('portfolioModalTitle').innerHTML = `<i class="fas fa-home"></i> Portföy Ekle`;
+        const formTitle = document.getElementById('portfolioModalTitle');
+        if (formTitle) formTitle.innerHTML = `<i class="fas fa-home"></i> Portföy Ekle`;
         document.getElementById('portfolioId').value = '';
         document.getElementById('portfolioForm').reset();
     }
@@ -369,15 +414,14 @@ async function savePortfolio() {
     const ilce = document.getElementById('p_ilce').value.trim();
 
     if (!baslik || !tur || !durum || !fiyat || !il || !ilce) {
-        toast('Lütfen tüm zorunlu alanları doldurun!', 'error');
+        toast('Zorunlu alanları doldurun!', 'error');
         return;
     }
 
     const data = {
         baslik, tur, durum, fiyat: Number(fiyat),
         alan: Number(document.getElementById('p_alan').value) || 0,
-        il, ilce,
-        adres: document.getElementById('p_adres').value.trim(),
+        il, ilce, adres: document.getElementById('p_adres').value.trim(),
         oda_sayisi: document.getElementById('p_oda').value,
         kat: document.getElementById('p_kat').value.trim(),
         isitma: document.getElementById('p_isitma').value,
@@ -389,129 +433,115 @@ async function savePortfolio() {
     try {
         if (state.editingPortfolio) {
             await api.put('portfolios', state.editingPortfolio, data);
-            toast('Portföy güncellendi');
+            toast('Portföy başarıyla güncellendi.');
         } else {
             await api.post('portfolios', data);
-            toast('Portföy eklendi');
+            toast('Portföy başarıyla eklendi.');
         }
         closeModal('portfolioModal');
-        loadAll();
+        await loadAll();
+    } catch (e) {
+        toast('Kaydedilemedi!', 'error');
+    }
+}
+
+async function deletePortfolio(id) {
+    if (!confirm('Silmek istediğinize emin misiniz?')) return;
+    try {
+        await api.del('portfolios', id);
+        toast('Portföy silindi.');
+        await loadAll();
     } catch (e) {
         toast('Hata oluştu', 'error');
     }
 }
 
-async function deletePortfolio(id) {
-    if (!confirm('Emin misiniz?')) return;
-    try {
-        await api.del('portfolios', id);
-        toast('Silindi');
-        loadAll();
-    } catch (e) {
-        toast('Hata', 'error');
-    }
-}
+// ===== 5MB DOSYA SINIRI VE KANVAS SIKIŞTIRMA (0.5 KALİTE) =====
+function handleFileUpload(files) {
+    if (!files || files.length === 0) return;
 
-// ===== FOTOĞRAFLARI KÜÇÜLTME (0.5 KALİTE) VE 6 ADET SINIRI =====
-async function compressImage(file) {
-    return new Promise((resolve) => {
+    Array.from(files).forEach(file => {
+        // 5 MB Sınırı
+        if (file.size > 5 * 1024 * 1024) {
+            toast(`"${file.name}" dosyası 5MB limitini aşıyor!`, 'error');
+            return;
+        }
+
         const reader = new FileReader();
-        reader.onload = function (event) {
+        reader.onload = function (e) {
             const img = new Image();
             img.onload = function () {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
+                const max_size = 1000; // Optimize genişlik hedefi
 
-                // En-boy oranını bozmadan genişliği maksimum 1000px yapalım
-                const MAX_WIDTH = 1000;
-                if (width > MAX_WIDTH) {
-                    height = Math.round((height * MAX_WIDTH) / width);
-                    width = MAX_WIDTH;
+                if (width > max_size) {
+                    height *= max_size / width;
+                    width = max_size;
                 }
 
                 canvas.width = width;
                 canvas.height = height;
-
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Kaliteyi 0.5 yaparak hem yer kaplamasını önlüyoruz hem de hızı artırıyoruz
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
-                resolve(dataUrl);
+                // Performans için 0.5 kalitede JPEG sıkıştırma
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
+
+                state.tempPhotos.push({ url: compressedBase64, type: 'file' });
+                renderPhotoPreview();
             };
-            img.src = event.target.result;
+            img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     });
 }
 
-async function handleFileUpload(files) {
-    for (let file of files) {
-        if (!file.type.startsWith('image/')) continue;
-        
-        if (state.tempPhotos.length >= 6) {
-            toast('En fazla 6 adet fotoğraf ekleyebilirsiniz!', 'warning');
-            break;
-        }
-
-        const compressedUrl = await compressImage(file);
-        state.tempPhotos.push({ url: compressedUrl, type: 'file' });
-    }
-    renderPhotoPreview();
-}
-
 function addPhotoUrl() {
     const input = document.getElementById('photoUrlInput');
+    if (!input) return;
     const url = input.value.trim();
     if (!url) return;
-
-    if (state.tempPhotos.length >= 6) {
-        toast('En fazla 6 adet fotoğraf ekleyebilirsiniz!', 'warning');
-        return;
-    }
-
     state.tempPhotos.push({ url, type: 'url' });
     input.value = '';
     renderPhotoPreview();
 }
 
-function removePhoto(index) {
+function removeTempPhoto(index) {
     state.tempPhotos.splice(index, 1);
     renderPhotoPreview();
 }
 
 function renderPhotoPreview() {
     const grid = document.getElementById('photoPreviewGrid');
+    if (!grid) return;
     grid.innerHTML = state.tempPhotos.map((p, i) => `
-        <div class="photo-preview-item">
-            <img src="${p.url}" alt="">
-            <button type="button" class="remove-btn" onclick="removePhoto(${i})"><i class="fas fa-times"></i></button>
-            <span class="photo-order-badge">${i + 1}/6</span>
+        <div class="photo-preview-item" style="position:relative; display:inline-block; margin:5px;">
+            <img src="${p.url}" style="width:80px; height:80px; object-fit:cover; border-radius:6px;">
+            <button type="button" onclick="removeTempPhoto(${i})" style="position:absolute; top:2px; right:2px; background:red; color:white; border:none; border-radius:50%; width:18px; height:18px; cursor:pointer; font-size:10px;">X</button>
         </div>
     `).join('');
 }
 
-// ===== CUSTOMERS (CANLI ARANABİLİR NUMARALAR & WHATSAPP) =====
-function renderCustomers(filterTur = '', filterDurum = '', searchQ = '') {
+// ===== CUSTOMERS (DOĞRUDAN WHATSAPP & ARANABİLİR NUMARA ENTEGRASYONU) =====
+function renderCustomers(filterTur = '', filterDurum = '', query = '') {
     const tbody = document.getElementById('customersTableBody');
-    let list = state.customers;
+    if (!tbody) return;
 
+    let list = state.customers;
     if (filterTur) list = list.filter(c => c.istek_tur === filterTur);
     if (filterDurum) list = list.filter(c => c.istek_durum === filterDurum);
-    
-    // Hem input çubuğundan gelen hem de global barda yazılan sorguyu birleştirip aratıyoruz
-    const finalQuery = (searchQ || document.getElementById('customerSearchInput').value).trim().toLowerCase();
-    if (finalQuery) {
+    if (query) {
         list = list.filter(c => 
-            (c.ad && c.ad.toLowerCase().includes(finalQuery)) ||
-            (c.soyad && c.soyad.toLowerCase().includes(finalQuery)) ||
-            (c.telefon && c.telefon.replace(/\s/g, '').includes(finalQuery))
+            (c.ad && c.ad.toLowerCase().includes(query)) ||
+            (c.soyad && c.soyad.toLowerCase().includes(query)) ||
+            (c.telefon && c.telefon.includes(query))
         );
     }
 
     if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-td"><div class="empty-state"><i class="fas fa-users"></i><p>Müşteri bulunamadı</p></div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">Müşteri bulunamadı.</td></tr>`;
         return;
     }
 
@@ -519,16 +549,16 @@ function renderCustomers(filterTur = '', filterDurum = '', searchQ = '') {
         <tr>
             <td><strong>${c.ad} ${c.soyad}</strong></td>
             <td>
-                <div class="customer-phone-wrapper">
-                    <a href="${formatPhoneForCall(c.telefon)}" class="phone-link-clickable">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <a href="${formatPhoneForCall(c.telefon)}" style="text-decoration:none; color:var(--primary); font-weight:600;">
                         <i class="fas fa-phone-alt"></i> ${c.telefon}
                     </a>
-                    <a href="${formatPhoneForWhatsApp(c.telefon)}" target="_blank" class="whatsapp-direct-btn" title="WhatsApp'tan Yaz">
+                    <a href="${formatPhoneForWhatsApp(c.telefon)}" target="_blank" style="color:#22c55e; font-size:1.1rem;" title="WhatsApp'tan Yaz">
                         <i class="fab fa-whatsapp"></i>
                     </a>
                 </div>
             </td>
-            <td><span class="badge-pill badge-tur">${TUR_LABELS[c.istek_tur] || c.istek_tur}</span></td>
+            <td><span class="badge-pill">${TUR_LABELS[c.istek_tur] || c.istek_tur}</span></td>
             <td><span class="badge-pill badge-${c.istek_durum}">${DURUM_LABELS[c.istek_durum] || c.istek_durum}</span></td>
             <td>${formatPrice(c.butce_min)} - ${formatPrice(c.butce_max)}</td>
             <td>${c.lokasyon_tercihi || '-'}</td>
@@ -544,10 +574,15 @@ function renderCustomers(filterTur = '', filterDurum = '', searchQ = '') {
 
 function showCustomerForm(id = null) {
     state.editingCustomer = id;
+    const form = document.getElementById('customerForm');
+    if (form) form.reset();
+
     if (id) {
         const c = state.customers.find(x => x.id === id);
         if (!c) return;
-        document.getElementById('customerModalTitle').innerHTML = `<i class="fas fa-edit"></i> Müşteri Düzenle`;
+        const title = document.getElementById('customerModalTitle');
+        if (title) title.innerHTML = `<i class="fas fa-edit"></i> Müşteri Düzenle`;
+        
         document.getElementById('customerId').value = id;
         document.getElementById('c_ad').value = c.ad || '';
         document.getElementById('c_soyad').value = c.soyad || '';
@@ -559,15 +594,11 @@ function showCustomerForm(id = null) {
         document.getElementById('c_lokasyon').value = c.lokasyon_tercihi || '';
         document.getElementById('c_notlar').value = c.notlar || '';
     } else {
-        document.getElementById('customerModalTitle').innerHTML = `<i class="fas fa-user-plus"></i> Müşteri Ekle`;
-        document.getElementById('customerId').value = '';
-        document.getElementById('customerForm').reset();
+        const title = document.getElementById('customerModalTitle');
+        if (title) title.innerHTML = `<i class="fas fa-user-plus"></i> Müşteri Ekle`;
+        if (document.getElementById('customerId')) document.getElementById('customerId').value = '';
     }
     openModal('customerModal');
-}
-
-function editCustomer(id) {
-    showCustomerForm(id);
 }
 
 async function saveCustomer() {
@@ -579,7 +610,7 @@ async function saveCustomer() {
     const butce_max = document.getElementById('c_butce_max').value;
 
     if (!ad || !soyad || !telefon || !istek_tur || !istek_durum || !butce_max) {
-        toast('Zorunlu alanları doldurun!', 'error');
+        toast('Lütfen zorunlu alanları doldurun!', 'error');
         return;
     }
 
@@ -595,153 +626,164 @@ async function saveCustomer() {
     try {
         if (state.editingCustomer) {
             await api.put('customers', state.editingCustomer, data);
-            toast('Müşteri güncellendi');
+            toast('Müşteri güncellendi.');
         } else {
             await api.post('customers', data);
-            toast('Müşteri eklendi');
+            toast('Müşteri eklendi.');
         }
         closeModal('customerModal');
-        loadAll();
+        await loadAll();
     } catch (e) {
-        toast('Hata', 'error');
+        toast('Hata oluştu', 'error');
     }
 }
 
 async function deleteCustomer(id) {
-    if (!confirm('Emin misiniz?')) return;
+    if (!confirm('Bu müşteriyi silmek istediğinize emin misiniz?')) return;
     try {
         await api.del('customers', id);
-        toast('Müşteri silindi');
-        loadAll();
+        toast('Müşteri silindi.');
+        await loadAll();
     } catch (e) {
-        toast('Hata', 'error');
+        toast('Silinemedi!', 'error');
     }
 }
 
-// ===== MATCHING =====
-function renderMatching(searchQ = '') {
+// ===== MATCHING AND AUTOMATION =====
+function renderMatching(query = '') {
     const grid = document.getElementById('matchingGrid');
-    let list = state.customers.filter(c => c.durum !== 'tamamlandi');
+    if (!grid) return;
 
-    if (searchQ) {
-        list = list.filter(c => (c.ad && c.ad.toLowerCase().includes(searchQ)) || (c.soyad && c.soyad.toLowerCase().includes(searchQ)));
+    let activeCustomers = state.customers.filter(c => c.durum !== 'tamamlandi');
+    if (query) {
+        activeCustomers = activeCustomers.filter(c => 
+            (c.ad && c.ad.toLowerCase().includes(query)) || (c.soyad && c.soyad.toLowerCase().includes(query))
+        );
     }
 
-    if (list.length === 0) {
-        grid.innerHTML = '<div class="empty-state full-width"><i class="fas fa-handshake"></i><p>Eşleşecek aktif müşteri yok</p></div>';
+    if (activeCustomers.length === 0) {
+        grid.innerHTML = `<div class="empty-state full-width"><i class="fas fa-handshake"></i><p>Aktif müşteri kaydı bulunamadı.</p></div>`;
         return;
     }
 
-    grid.innerHTML = list.map(c => {
-        const matches = state.portfolios.filter(p => p.tur === c.istek_tur && p.durum === c.istek_durum && p.fiyat >= c.butce_min && p.fiyat <= c.butce_max);
+    grid.innerHTML = activeCustomers.map(c => {
+        const potentialPortfolios = state.portfolios.filter(p => 
+            p.tur === c.istek_tur && p.durum === c.istek_durum && p.fiyat >= c.butce_min && p.fiyat <= c.butce_max
+        );
+
         return `
-        <div class="portfolio-card" style="padding: 16px;">
+        <div class="portfolio-card" style="padding:15px; border:1px solid var(--border);">
             <h3>${c.ad} ${c.soyad}</h3>
-            <p style="font-size: .85rem; color: var(--text-muted); margin: 4px 0 12px 0;">
-                Talep: ${DURUM_LABELS[c.istek_durum]} ${TUR_LABELS[c.istek_tur]} (${formatPrice(c.butce_min)} - ${formatPrice(c.butce_max)})
-            </p>
+            <p style="font-size:0.8rem; color:var(--text-muted);">Talep: ${DURUM_LABELS[c.istek_durum]} ${TUR_LABELS[c.istek_tur]}</p>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">Bütçe: ${formatPrice(c.butce_min)} - ${formatPrice(c.butce_max)}</p>
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="badge-pill" style="background:var(--primary-light); color:var(--primary); font-weight:600;">${matches.length} Eşleşme</span>
-                <button class="btn btn-secondary btn-sm" onclick="showMatchDetails('${c.id}')" ${matches.length === 0 ? 'disabled' : ''}>Göster</button>
+                <span class="badge-pill" style="background:var(--primary-light); color:var(--primary); font-weight:600;">${potentialPortfolios.length} Eşleşme</span>
+                <button class="btn btn-primary btn-sm" onclick="showMatchesForCustomer('${c.id}')" ${potentialPortfolios.length === 0 ? 'disabled' : ''}>Göster</button>
             </div>
         </div>`;
     }).join('');
 }
 
-function showMatchDetails(cid) {
-    const c = state.customers.find(x => x.id === cid);
+function showMatchesForCustomer(customerId) {
+    const c = state.customers.find(x => x.id === customerId);
     if (!c) return;
-    const matches = state.portfolios.filter(p => p.tur === c.istek_tur && p.durum === c.istek_durum && p.fiyat >= c.butce_min && p.fiyat <= c.butce_max);
 
-    document.getElementById('matchModalTitle').innerHTML = `<i class="fas fa-magic"></i> ${c.ad} ${c.soyad} için Eşleşenler`;
-    document.getElementById('matchModalContent').innerHTML = matches.map(p => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border)">
-            <div>
-                <strong>${p.baslik}</strong><br>
-                <small>${p.ilce} - ${formatPrice(p.fiyat)}</small>
+    const potentialPortfolios = state.portfolios.filter(p => 
+        p.tur === c.istek_tur && p.durum === c.istek_durum && p.fiyat >= c.butce_min && p.fiyat <= c.butce_max
+    );
+
+    const matchTitle = document.getElementById('matchModalTitle');
+    if (matchTitle) matchTitle.innerHTML = `<i class="fas fa-magic"></i> Eşleşen Portföyler`;
+
+    const content = document.getElementById('matchModalContent');
+    if (content) {
+        content.innerHTML = potentialPortfolios.map(p => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);">
+                <div>
+                    <strong>${p.baslik}</strong><br>
+                    <small>${p.ilce} / ${p.il} — ${formatPrice(p.fiyat)}</small>
+                </div>
+                <button class="btn btn-success btn-sm" onclick="shareMatchWithWhatsApp('${c.telefon}', '${p.baslik}', '${p.fiyat}', '${p.ilce}')">
+                    <i class="fab fa-whatsapp"></i> Paylaş
+                </button>
             </div>
-            <button class="btn btn-primary btn-sm" onclick="window.open('${formatPhoneForWhatsApp(c.telefon)}?text=${encodeURIComponent(p.baslik + ' ilanı bütçenize uygun görünmektedir: ' + formatPrice(p.fiyat))}', '_blank')">
-                <i class="fab fa-whatsapp"></i> Paylaş
-            </button>
-        </div>
-    `).join('');
+        `).join('');
+    }
     openModal('matchModal');
 }
 
-// ===== INITIALIZE EVENTS =====
+function shareMatchWithWhatsApp(phone, title, price, location) {
+    const message = `Merhaba, arayışınız için bir portföyümüz mevcut:\n\n🏠 *${title}*\n📍 Konum: ${location}\n💰 Fiyat: ${formatPrice(price)}`;
+    window.open(formatPhoneForWhatsApp(phone) + `?text=${encodeURIComponent(message)}`, '_blank');
+}
+
+// ===== SAFE EVENT LISTENERS (Çökmeyi Önleyici Kontroller) =====
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', (e) => {
+    document.querySelectorAll('[data-page]').forEach(el => {
+        el.addEventListener('click', (e) => {
             e.preventDefault();
-            navigate(item.dataset.page);
+            if (el.dataset.page) navigate(el.dataset.page);
         });
     });
 
-    document.querySelectorAll('.btn-link').forEach(btn => {
-        btn.addEventListener('click', () => navigate(btn.dataset.page));
-    });
+    // Filtre Değişim Dinleyicileri
+    document.getElementById('filterTur')?.addEventListener('change', applyFilters);
+    document.getElementById('filterDurum')?.addEventListener('change', applyFilters);
+    document.getElementById('filterCustTur')?.addEventListener('change', applyFilters);
+    document.getElementById('filterCustDurum')?.addEventListener('change', applyFilters);
+
+    // Form Tetikleyicileri
+    document.getElementById('addPortfolioBtn')?.addEventListener('click', () => showPortfolioForm());
+    document.getElementById('addPortfolioBtnEmpty')?.addEventListener('click', () => showPortfolioForm());
+    document.getElementById('addCustomerBtn')?.addEventListener('click', () => showCustomerForm());
 
     document.querySelectorAll('.modal-close, [data-modal]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            if (e.target === btn || btn.contains(e.target)) {
-                const mid = btn.dataset.modal || btn.closest('.modal-overlay').id;
-                closeModal(mid);
-            }
+        btn.addEventListener('click', () => {
+            const mId = btn.getAttribute('data-modal') || btn.closest('.modal-overlay')?.id;
+            if (mId) closeModal(mId);
         });
     });
 
-    document.getElementById('filterTur').addEventListener('change', () => renderPortfolios(document.getElementById('filterTur').value, document.getElementById('filterDurum').value));
-    document.getElementById('filterDurum').addEventListener('change', () => renderPortfolios(document.getElementById('filterTur').value, document.getElementById('filterDurum').value));
-    document.getElementById('filterCustTur').addEventListener('change', () => renderCustomers(document.getElementById('filterCustTur').value, document.getElementById('filterCustDurum').value));
-    document.getElementById('filterCustDurum').addEventListener('change', () => renderCustomers(document.getElementById('filterCustTur').value, document.getElementById('filterCustDurum').value));
-
-    // Müşteriler sayfası anlık arama girdisi dinleyicisi
-    document.getElementById('customerSearchInput').addEventListener('input', (e) => {
-        renderCustomers(document.getElementById('filterCustTur').value, document.getElementById('filterCustDurum').value, e.target.value);
-    });
-
-    document.getElementById('portfolioForm').addEventListener('submit', (e) => { e.preventDefault(); savePortfolio(); });
-    document.getElementById('customerForm').addEventListener('submit', (e) => { e.preventDefault(); saveCustomer(); });
+    document.getElementById('portfolioForm')?.addEventListener('submit', (e) => { e.preventDefault(); savePortfolio(); });
+    document.getElementById('customerForm')?.addEventListener('submit', (e) => { e.preventDefault(); saveCustomer(); });
 
     document.querySelectorAll('.form-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             tab.classList.add('active');
-            document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            document.getElementById('tab-' + tab.dataset.tab)?.classList.add('active');
         });
     });
 
-    const photoSelectBtn = document.getElementById('photoSelectBtn');
-    const photoInput = document.getElementById('photoInput');
-    photoSelectBtn.addEventListener('click', () => photoInput.click());
-    photoInput.addEventListener('change', (e) => {
-        handleFileUpload(e.target.files);
-        e.target.value = '';
-    });
+    // Fotoğraf İşlemleri
+    const pSelectBtn = document.getElementById('photoSelectBtn');
+    const pInput = document.getElementById('photoInput');
+    if (pSelectBtn && pInput) {
+        pSelectBtn.addEventListener('click', () => pInput.click());
+        pInput.addEventListener('change', (e) => { handleFileUpload(e.target.files); e.target.value = ''; });
+    }
 
-    const uploadArea = document.getElementById('photoUploadArea');
-    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
-    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('dragover');
-        handleFileUpload(e.dataTransfer.files);
-    });
+    const uArea = document.getElementById('photoUploadArea');
+    if (uArea) {
+        uArea.addEventListener('dragover', (e) => { e.preventDefault(); uArea.classList.add('dragover'); });
+        uArea.addEventListener('dragleave', () => uArea.classList.remove('dragover'));
+        uArea.addEventListener('drop', (e) => { e.preventDefault(); uArea.classList.remove('dragover'); handleFileUpload(e.dataTransfer.files); });
+    }
 
-    document.getElementById('addPhotoUrlBtn').addEventListener('click', addPhotoUrl);
-    document.getElementById('photoUrlInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); addPhotoUrl(); }
-    });
+    document.getElementById('addPhotoUrlBtn')?.addEventListener('click', addPhotoUrl);
 
+    // Global Canlı Arama Input Dinleyicisi
     let searchTimeout;
-    document.getElementById('globalSearch').addEventListener('input', (e) => {
+    document.getElementById('globalSearch')?.addEventListener('input', () => {
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => handleGlobalSearch(e.target.value), 300);
+        searchTimeout = setTimeout(() => applyFilters(), 300);
     });
 
-    document.getElementById('mobileMenuBtn').addEventListener('click', openMobileSidebar);
-    document.getElementById('sidebarOverlay').addEventListener('click', closeMobileSidebar);
+    // Mobil Menü Dinleyicileri
+    document.getElementById('mobileMenuBtn')?.addEventListener('click', openMobileSidebar);
+    document.getElementById('sidebarOverlay')?.addEventListener('click', closeMobileSidebar);
+    document.getElementById('sidebarToggle')?.addEventListener('click', closeMobileSidebar);
 
     loadAll();
 });
