@@ -8,7 +8,7 @@ const state = {
     currentPage: 'dashboard',
     editingPortfolio: null,
     editingCustomer: null,
-    tempPhotos: [], // { url, type: 'file'|'url', file?, dataUrl? }
+    tempPhotos: [], // { url, type: 'file'|'url' }
 };
 
 // ===== API HELPERS =====
@@ -62,7 +62,7 @@ function formatPhoneForCall(phone) {
 
 function formatPhoneForWhatsApp(phone) {
     let p = phone.replace(/\D/g, '');
-    if (p.startsWith('0')) p = '90' + p.slice(1);
+    if (p.startsWith('0')) p = p.slice(1);
     if (!p.startsWith('90')) p = '90' + p;
     return 'https://wa.me/' + p;
 }
@@ -75,7 +75,7 @@ function getFirstPhoto(photos) {
 function toast(msg, type = 'success') {
     const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle' };
     const container = document.getElementById('toastContainer');
-    if(!container) return;
+    if (!container) return;
     const t = document.createElement('div');
     t.className = `toast ${type}`;
     t.innerHTML = `<i class="fas ${icons[type] || icons.success}"></i> ${msg}`;
@@ -85,15 +85,14 @@ function toast(msg, type = 'success') {
 }
 
 function openModal(id) {
-    document.getElementById(id).classList.add('active');
+    const m = document.getElementById(id);
+    if(m) m.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
-// Global müşteri arama terimi state'i
-let customerSearchQuery = "";
-
 function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
+    const m = document.getElementById(id);
+    if(m) m.classList.remove('active');
     document.body.style.overflow = '';
 }
 
@@ -123,6 +122,16 @@ function navigate(page) {
     closeMobileSidebar();
 }
 
+function openMobileSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebarOverlay').classList.add('active');
+}
+
+function closeMobileSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('active');
+}
+
 // ===== LOAD DATA =====
 async function loadAll() {
     try {
@@ -137,16 +146,30 @@ async function loadAll() {
         renderDashboard();
         updateNotifBadge();
     } catch (e) {
-        console.error('Data load error:', e);
+        console.error(e);
     }
 }
 
 function updateNotifBadge() {
     const pending = state.matches.filter(m => m.durum === 'onay_bekliyor').length;
     const badge = document.getElementById('notifBadge');
-    if(badge) {
+    if (badge) {
         badge.textContent = pending;
         badge.style.display = pending > 0 ? 'block' : 'none';
+    }
+}
+
+// ===== SEARCH MTR ENGINE =====
+function handleGlobalSearch(val) {
+    const q = val.trim().toLowerCase();
+    if (state.currentPage === 'dashboard') {
+        renderDashboard(); 
+    } else if (state.currentPage === 'portfolios') {
+        renderPortfolios(document.getElementById('filterTur').value, document.getElementById('filterDurum').value, q);
+    } else if (state.currentPage === 'customers') {
+        renderCustomers(document.getElementById('filterCustTur').value, document.getElementById('filterCustDurum').value, q);
+    } else if (state.currentPage === 'matching') {
+        renderMatching(q);
     }
 }
 
@@ -196,11 +219,18 @@ function renderDashboard() {
 }
 
 // ===== PORTFOLIOS =====
-function renderPortfolios(filterTur = '', filterDurum = '') {
+function renderPortfolios(filterTur = '', filterDurum = '', searchQ = '') {
     const grid = document.getElementById('portfolioGrid');
     let list = state.portfolios;
     if (filterTur) list = list.filter(p => p.tur === filterTur);
     if (filterDurum) list = list.filter(p => p.durum === filterDurum);
+    if (searchQ) {
+        list = list.filter(p => 
+            (p.baslik && p.baslik.toLowerCase().includes(searchQ)) ||
+            (p.ilce && p.ilce.toLowerCase().includes(searchQ)) ||
+            (p.il && p.il.toLowerCase().includes(searchQ))
+        );
+    }
 
     if (list.length === 0) {
         grid.innerHTML = `
@@ -330,7 +360,59 @@ function editPortfolio(id) {
     showPortfolioForm(id);
 }
 
-// ===== FOTOĞRAF KALİTESİNİ KÜÇÜLTME (COMPRESSION) VE 6 ADET SINIRI =====
+async function savePortfolio() {
+    const baslik = document.getElementById('p_baslik').value.trim();
+    const tur = document.getElementById('p_tur').value;
+    const durum = document.getElementById('p_durum').value;
+    const fiyat = document.getElementById('p_fiyat').value;
+    const il = document.getElementById('p_il').value.trim();
+    const ilce = document.getElementById('p_ilce').value.trim();
+
+    if (!baslik || !tur || !durum || !fiyat || !il || !ilce) {
+        toast('Lütfen tüm zorunlu alanları doldurun!', 'error');
+        return;
+    }
+
+    const data = {
+        baslik, tur, durum, fiyat: Number(fiyat),
+        alan: Number(document.getElementById('p_alan').value) || 0,
+        il, ilce,
+        adres: document.getElementById('p_adres').value.trim(),
+        oda_sayisi: document.getElementById('p_oda').value,
+        kat: document.getElementById('p_kat').value.trim(),
+        isitma: document.getElementById('p_isitma').value,
+        aciklama: document.getElementById('p_aciklama').value.trim(),
+        fotograflar: state.tempPhotos.map(p => p.url),
+        aktif: true
+    };
+
+    try {
+        if (state.editingPortfolio) {
+            await api.put('portfolios', state.editingPortfolio, data);
+            toast('Portföy güncellendi');
+        } else {
+            await api.post('portfolios', data);
+            toast('Portföy eklendi');
+        }
+        closeModal('portfolioModal');
+        loadAll();
+    } catch (e) {
+        toast('Hata oluştu', 'error');
+    }
+}
+
+async function deletePortfolio(id) {
+    if (!confirm('Emin misiniz?')) return;
+    try {
+        await api.del('portfolios', id);
+        toast('Silindi');
+        loadAll();
+    } catch (e) {
+        toast('Hata', 'error');
+    }
+}
+
+// ===== FOTOĞRAFLARI KÜÇÜLTME (0.5 KALİTE) VE 6 ADET SINIRI =====
 async function compressImage(file) {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -341,8 +423,8 @@ async function compressImage(file) {
                 let width = img.width;
                 let height = img.height;
 
-                // Maksimum genişlik standardı getirerek boyutu daha da optimize edelim
-                const MAX_WIDTH = 1200;
+                // En-boy oranını bozmadan genişliği maksimum 1000px yapalım
+                const MAX_WIDTH = 1000;
                 if (width > MAX_WIDTH) {
                     height = Math.round((height * MAX_WIDTH) / width);
                     width = MAX_WIDTH;
@@ -354,7 +436,7 @@ async function compressImage(file) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // 0.5 kalitesinde JPEG çıktısı alarak boyutu minimize ediyoruz (%80 tasarruf)
+                // Kaliteyi 0.5 yaparak hem yer kaplamasını önlüyoruz hem de hızı artırıyoruz
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
                 resolve(dataUrl);
             };
@@ -368,20 +450,13 @@ async function handleFileUpload(files) {
     for (let file of files) {
         if (!file.type.startsWith('image/')) continue;
         
-        // 6 Adet Sınır Kontrolü
         if (state.tempPhotos.length >= 6) {
             toast('En fazla 6 adet fotoğraf ekleyebilirsiniz!', 'warning');
             break;
         }
 
-        // Kaliteyi küçülterek dosyayı oku/sıkıştır
-        const compressedDataUrl = await compressImage(file);
-        
-        state.tempPhotos.push({
-            url: compressedDataUrl,
-            type: 'file',
-            dataUrl: compressedDataUrl
-        });
+        const compressedUrl = await compressImage(file);
+        state.tempPhotos.push({ url: compressedUrl, type: 'file' });
     }
     renderPhotoPreview();
 }
@@ -412,147 +487,261 @@ function renderPhotoPreview() {
         <div class="photo-preview-item">
             <img src="${p.url}" alt="">
             <button type="button" class="remove-btn" onclick="removePhoto(${i})"><i class="fas fa-times"></i></button>
-            <span class="photo-order-badge">${i + 1}</span>
+            <span class="photo-order-badge">${i + 1}/6</span>
         </div>
     `).join('');
 }
 
-// ===== CUSTOMERS (ARAMA MOTORU VE WHATSAPP ENTEGRASYONU) =====
-function renderCustomers(filterTur = '', filterDurum = '') {
-    const tableBody = document.getElementById('customersTableBody');
+// ===== CUSTOMERS (CANLI ARANABİLİR NUMARALAR & WHATSAPP) =====
+function renderCustomers(filterTur = '', filterDurum = '', searchQ = '') {
+    const tbody = document.getElementById('customersTableBody');
     let list = state.customers;
 
     if (filterTur) list = list.filter(c => c.istek_tur === filterTur);
     if (filterDurum) list = list.filter(c => c.istek_durum === filterDurum);
-
-    // Telefon veya İsim Filtrelemesi
-    if (customerSearchQuery) {
-        const query = customerSearchQuery.toLowerCase();
+    
+    // Hem input çubuğundan gelen hem de global barda yazılan sorguyu birleştirip aratıyoruz
+    const finalQuery = (searchQ || document.getElementById('customerSearchInput').value).trim().toLowerCase();
+    if (finalQuery) {
         list = list.filter(c => 
-            (c.ad && c.ad.toLowerCase().includes(query)) ||
-            (c.soyad && c.soyad.toLowerCase().includes(query)) ||
-            (c.telefon && c.telefon.replace(/\s/g, '').includes(query))
+            (c.ad && c.ad.toLowerCase().includes(finalQuery)) ||
+            (c.soyad && c.soyad.toLowerCase().includes(finalQuery)) ||
+            (c.telefon && c.telefon.replace(/\s/g, '').includes(finalQuery))
         );
     }
 
-    // Arama Çubuğunun Tablo Üzerinde Dinamik Kalmasını Sağlama
-    const pageContainer = document.getElementById('page-customers');
-    let searchWrapper = document.getElementById('customerSearchWrapper');
-    if (!searchWrapper && pageContainer) {
-        searchWrapper = document.createElement('div');
-        searchWrapper.id = 'customerSearchWrapper';
-        searchWrapper.className = 'customer-search-container';
-        searchWrapper.innerHTML = `
-            <div class="search-box inline-search">
-                <i class="fas fa-search"></i>
-                <input type="text" id="customerPhoneSearch" placeholder="Müşteri adı veya telefon numarası ara..." value="${customerSearchQuery}">
-            </div>
-        `;
-        const tableWrapper = pageContainer.querySelector('.customers-table-wrapper');
-        if (tableWrapper) {
-            pageContainer.insertBefore(searchWrapper, tableWrapper);
-            document.getElementById('customerPhoneSearch').addEventListener('input', (e) => {
-                customerSearchQuery = e.target.value;
-                renderCustomers(
-                    document.getElementById('filterCustTur').value,
-                    document.getElementById('filterCustDurum').value
-                );
-            });
-        }
-    }
-
     if (list.length === 0) {
-        tableBody.innerHTML = `
-        <tr>
-            <td colspan="7" class="empty-td">
-                <div class="empty-state">
-                    <i class="fas fa-users"></i>
-                    <p>Aranan kriterlere uygun müşteri bulunamadı.</p>
-                </div>
-            </td>
-        </tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-td"><div class="empty-state"><i class="fas fa-users"></i><p>Müşteri bulunamadı</p></div></td></tr>`;
         return;
     }
 
-    tableBody.innerHTML = list.map(c => `
+    tbody.innerHTML = list.map(c => `
         <tr>
             <td><strong>${c.ad} ${c.soyad}</strong></td>
             <td>
-                <div class="customer-phone-cell">
-                    <a href="${formatPhoneForCall(c.telefon)}" class="phone-link"><i class="fas fa-phone-alt"></i> ${c.telefon}</a>
-                    <a href="${formatPhoneForWhatsApp(c.telefon)}" target="_blank" class="whatsapp-btn-table" title="WhatsApp'tan Yaz"><i class="fab fa-whatsapp"></i></a>
+                <div class="customer-phone-wrapper">
+                    <a href="${formatPhoneForCall(c.telefon)}" class="phone-link-clickable">
+                        <i class="fas fa-phone-alt"></i> ${c.telefon}
+                    </a>
+                    <a href="${formatPhoneForWhatsApp(c.telefon)}" target="_blank" class="whatsapp-direct-btn" title="WhatsApp'tan Yaz">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
                 </div>
             </td>
             <td><span class="badge-pill badge-tur">${TUR_LABELS[c.istek_tur] || c.istek_tur}</span></td>
             <td><span class="badge-pill badge-${c.istek_durum}">${DURUM_LABELS[c.istek_durum] || c.istek_durum}</span></td>
             <td>${formatPrice(c.butce_min)} - ${formatPrice(c.butce_max)}</td>
-            <td>${c.tercih_lokasyon || '-'}</td>
+            <td>${c.lokasyon_tercihi || '-'}</td>
             <td>
-                <div class="table-actions">
-                    <button class="btn btn-secondary btn-sm btn-icon" onclick="editCustomer('${c.id}')" title="Düzenle"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-danger btn-sm btn-icon" onclick="deleteCustomer('${c.id}')" title="Sil"><i class="fas fa-trash"></i></button>
+                <div style="display:flex;gap:4px">
+                    <button class="btn btn-secondary btn-sm" onclick="editCustomer('${c.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')"><i class="fas fa-trash"></i></button>
                 </div>
             </td>
         </tr>
     `).join('');
 }
 
-// Diğer global event listener ve tanımlamaları koruyoruz...
+function showCustomerForm(id = null) {
+    state.editingCustomer = id;
+    if (id) {
+        const c = state.customers.find(x => x.id === id);
+        if (!c) return;
+        document.getElementById('customerModalTitle').innerHTML = `<i class="fas fa-edit"></i> Müşteri Düzenle`;
+        document.getElementById('customerId').value = id;
+        document.getElementById('c_ad').value = c.ad || '';
+        document.getElementById('c_soyad').value = c.soyad || '';
+        document.getElementById('c_telefon').value = c.telefon || '';
+        document.getElementById('c_tur').value = c.istek_tur || '';
+        document.getElementById('c_durum').value = c.istek_durum || '';
+        document.getElementById('c_butce_min').value = c.butce_min || '';
+        document.getElementById('c_butce_max').value = c.butce_max || '';
+        document.getElementById('c_lokasyon').value = c.lokasyon_tercihi || '';
+        document.getElementById('c_notlar').value = c.notlar || '';
+    } else {
+        document.getElementById('customerModalTitle').innerHTML = `<i class="fas fa-user-plus"></i> Müşteri Ekle`;
+        document.getElementById('customerId').value = '';
+        document.getElementById('customerForm').reset();
+    }
+    openModal('customerModal');
+}
+
+function editCustomer(id) {
+    showCustomerForm(id);
+}
+
+async function saveCustomer() {
+    const ad = document.getElementById('c_ad').value.trim();
+    const soyad = document.getElementById('c_soyad').value.trim();
+    const telefon = document.getElementById('c_telefon').value.trim();
+    const istek_tur = document.getElementById('c_tur').value;
+    const istek_durum = document.getElementById('c_durum').value;
+    const butce_max = document.getElementById('c_butce_max').value;
+
+    if (!ad || !soyad || !telefon || !istek_tur || !istek_durum || !butce_max) {
+        toast('Zorunlu alanları doldurun!', 'error');
+        return;
+    }
+
+    const data = {
+        ad, soyad, telefon, istek_tur, istek_durum,
+        butce_min: Number(document.getElementById('c_butce_min').value) || 0,
+        butce_max: Number(butce_max),
+        lokasyon_tercihi: document.getElementById('c_lokasyon').value.trim(),
+        notlar: document.getElementById('c_notlar').value.trim(),
+        durum: 'aktif'
+    };
+
+    try {
+        if (state.editingCustomer) {
+            await api.put('customers', state.editingCustomer, data);
+            toast('Müşteri güncellendi');
+        } else {
+            await api.post('customers', data);
+            toast('Müşteri eklendi');
+        }
+        closeModal('customerModal');
+        loadAll();
+    } catch (e) {
+        toast('Hata', 'error');
+    }
+}
+
+async function deleteCustomer(id) {
+    if (!confirm('Emin misiniz?')) return;
+    try {
+        await api.del('customers', id);
+        toast('Müşteri silindi');
+        loadAll();
+    } catch (e) {
+        toast('Hata', 'error');
+    }
+}
+
+// ===== MATCHING =====
+function renderMatching(searchQ = '') {
+    const grid = document.getElementById('matchingGrid');
+    let list = state.customers.filter(c => c.durum !== 'tamamlandi');
+
+    if (searchQ) {
+        list = list.filter(c => (c.ad && c.ad.toLowerCase().includes(searchQ)) || (c.soyad && c.soyad.toLowerCase().includes(searchQ)));
+    }
+
+    if (list.length === 0) {
+        grid.innerHTML = '<div class="empty-state full-width"><i class="fas fa-handshake"></i><p>Eşleşecek aktif müşteri yok</p></div>';
+        return;
+    }
+
+    grid.innerHTML = list.map(c => {
+        const matches = state.portfolios.filter(p => p.tur === c.istek_tur && p.durum === c.istek_durum && p.fiyat >= c.butce_min && p.fiyat <= c.butce_max);
+        return `
+        <div class="portfolio-card" style="padding: 16px;">
+            <h3>${c.ad} ${c.soyad}</h3>
+            <p style="font-size: .85rem; color: var(--text-muted); margin: 4px 0 12px 0;">
+                Talep: ${DURUM_LABELS[c.istek_durum]} ${TUR_LABELS[c.istek_tur]} (${formatPrice(c.butce_min)} - ${formatPrice(c.butce_max)})
+            </p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="badge-pill" style="background:var(--primary-light); color:var(--primary); font-weight:600;">${matches.length} Eşleşme</span>
+                <button class="btn btn-secondary btn-sm" onclick="showMatchDetails('${c.id}')" ${matches.length === 0 ? 'disabled' : ''}>Göster</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function showMatchDetails(cid) {
+    const c = state.customers.find(x => x.id === cid);
+    if (!c) return;
+    const matches = state.portfolios.filter(p => p.tur === c.istek_tur && p.durum === c.istek_durum && p.fiyat >= c.butce_min && p.fiyat <= c.butce_max);
+
+    document.getElementById('matchModalTitle').innerHTML = `<i class="fas fa-magic"></i> ${c.ad} ${c.soyad} için Eşleşenler`;
+    document.getElementById('matchModalContent').innerHTML = matches.map(p => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border)">
+            <div>
+                <strong>${p.baslik}</strong><br>
+                <small>${p.ilce} - ${formatPrice(p.fiyat)}</small>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="window.open('${formatPhoneForWhatsApp(c.telefon)}?text=${encodeURIComponent(p.baslik + ' ilanı bütçenize uygun görünmektedir: ' + formatPrice(p.fiyat))}', '_blank')">
+                <i class="fab fa-whatsapp"></i> Paylaş
+            </button>
+        </div>
+    `).join('');
+    openModal('matchModal');
+}
+
+// ===== INITIALIZE EVENTS =====
 document.addEventListener('DOMContentLoaded', () => {
-    // Navigation binds
-    document.querySelectorAll('.nav-item, .btn-link').forEach(item => {
+    document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
-            const page = item.dataset.page;
-            if (page) navigate(page);
+            navigate(item.dataset.page);
         });
     });
 
-    // Modals close binds
+    document.querySelectorAll('.btn-link').forEach(btn => {
+        btn.addEventListener('click', () => navigate(btn.dataset.page));
+    });
+
     document.querySelectorAll('.modal-close, [data-modal]').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            if(e.target === btn || btn.contains(e.target)){
-                const mid = btn.dataset.modal;
-                if(mid) closeModal(mid);
+            if (e.target === btn || btn.contains(e.target)) {
+                const mid = btn.dataset.modal || btn.closest('.modal-overlay').id;
+                closeModal(mid);
             }
         });
     });
 
-    // Portfolio Filters
-    document.getElementById('filterTur').addEventListener('change', (e) => renderPortfolios(e.target.value, document.getElementById('filterDurum').value));
-    document.getElementById('filterDurum').addEventListener('change', (e) => renderPortfolios(document.getElementById('filterTur').value, e.target.value));
+    document.getElementById('filterTur').addEventListener('change', () => renderPortfolios(document.getElementById('filterTur').value, document.getElementById('filterDurum').value));
+    document.getElementById('filterDurum').addEventListener('change', () => renderPortfolios(document.getElementById('filterTur').value, document.getElementById('filterDurum').value));
+    document.getElementById('filterCustTur').addEventListener('change', () => renderCustomers(document.getElementById('filterCustTur').value, document.getElementById('filterCustDurum').value));
+    document.getElementById('filterCustDurum').addEventListener('change', () => renderCustomers(document.getElementById('filterCustTur').value, document.getElementById('filterCustDurum').value));
 
-    // Customer Filters
-    document.getElementById('filterCustTur').addEventListener('change', (e) => renderCustomers(e.target.value, document.getElementById('filterCustDurum').value));
-    document.getElementById('filterCustDurum').addEventListener('change', (e) => renderCustomers(document.getElementById('filterCustTur').value, e.target.value));
+    // Müşteriler sayfası anlık arama girdisi dinleyicisi
+    document.getElementById('customerSearchInput').addEventListener('input', (e) => {
+        renderCustomers(document.getElementById('filterCustTur').value, document.getElementById('filterCustDurum').value, e.target.value);
+    });
 
-    // Photo uploads trigger
+    document.getElementById('portfolioForm').addEventListener('submit', (e) => { e.preventDefault(); savePortfolio(); });
+    document.getElementById('customerForm').addEventListener('submit', (e) => { e.preventDefault(); saveCustomer(); });
+
+    document.querySelectorAll('.form-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+        });
+    });
+
     const photoSelectBtn = document.getElementById('photoSelectBtn');
     const photoInput = document.getElementById('photoInput');
-    if(photoSelectBtn && photoInput) {
-        photoSelectBtn.addEventListener('click', () => photoInput.click());
-        photoInput.addEventListener('change', (e) => {
-            handleFileUpload(e.target.files);
-            e.target.value = ''; 
-        });
-    }
+    photoSelectBtn.addEventListener('click', () => photoInput.click());
+    photoInput.addEventListener('change', (e) => {
+        handleFileUpload(e.target.files);
+        e.target.value = '';
+    });
 
     const uploadArea = document.getElementById('photoUploadArea');
-    if(uploadArea) {
-        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
-        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            handleFileUpload(e.dataTransfer.files);
-        });
-    }
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        handleFileUpload(e.dataTransfer.files);
+    });
 
-    // Modal Add Buttons
-    document.getElementById('addPortfolioBtn').addEventListener('click', () => showPortfolioForm());
-    document.getElementById('addPortfolioBtnEmpty').addEventListener('click', () => showPortfolioForm());
-    document.getElementById('addCustomerBtn').addEventListener('click', () => showCustomerForm());
+    document.getElementById('addPhotoUrlBtn').addEventListener('click', addPhotoUrl);
+    document.getElementById('photoUrlInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); addPhotoUrl(); }
+    });
 
-    // Load initial
+    let searchTimeout;
+    document.getElementById('globalSearch').addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => handleGlobalSearch(e.target.value), 300);
+    });
+
+    document.getElementById('mobileMenuBtn').addEventListener('click', openMobileSidebar);
+    document.getElementById('sidebarOverlay').addEventListener('click', closeMobileSidebar);
+
     loadAll();
 });
