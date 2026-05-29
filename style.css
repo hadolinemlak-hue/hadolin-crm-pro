@@ -1,96 +1,64 @@
-/* ===== MOBILE FIX CORE ===== */
-html, body {
-  width: 100%;
-  overflow-x: hidden;
+/* ===== MÜŞTERİ ARAMA & WHATSAPP GÜNCELLEMELERİ ===== */
+.customer-search-container {
+    margin-bottom: 16px;
+    display: flex;
+    width: 100%;
 }
 
-/* SIDEBAR MOBILE BEHAVIOR */
-.sidebar-overlay {
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.5);
-  z-index:50;
+.inline-search {
+    width: 100%;
+    max-width: 400px;
+    background: var(--surface) !important;
 }
 
-.sidebar {
-  transition: transform .3s ease;
+.customer-phone-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.close-sidebar {
-  display:none;
-  background:none;
-  border:none;
-  color:#fff;
-  font-size:18px;
+.phone-link {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
 }
 
-/* MOBILE */
-@media (max-width: 768px) {
-
-  .main-content {
-    margin-left:0;
-  }
-
-  .sidebar {
-    transform: translateX(-100%);
-    z-index:100;
-    position:fixed;
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
-  }
-
-  .sidebar-overlay.active {
-    display:block;
-  }
-
-  .close-sidebar {
-    display:block;
-  }
-
-  .mobile-btn {
-    display:block;
-    background:#0f172a;
-    color:#fff;
-    border:none;
-    padding:8px 12px;
-    border-radius:8px;
-  }
-
-  .topbar {
-    justify-content:space-between;
-  }
+.phone-link:hover {
+    color: var(--primary);
 }
 
-/* ===== IPHONE 13 TABLE FIX ===== */
-.customers-table-wrapper {
-  width:100%;
-  overflow-x:auto;
-  -webkit-overflow-scrolling: touch;
+.whatsapp-btn-table {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background-color: #25D366;
+    color: white !important;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 5px rgba(37, 211, 102, 0.3);
+    transition: transform 0.2s, background-color 0.2s;
 }
 
-.data-table {
-  min-width: 520px;
+.whatsapp-btn-table:hover {
+    background-color: #128C7E;
+    transform: scale(1.1);
 }
 
-/* text taşmasını engelle */
-td, th {
-  white-space: nowrap;
+/* Fotoğraf Sıralama Rozeti */
+.photo-preview-item {
+    position: relative;
 }
-
-/* cardlar mobile */
-@media (max-width: 480px) {
-  .stats-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  .portfolio-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  .page {
-    padding: 12px;
-  }
+.photo-order-badge {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 1px 5px;
+    border-radius: 4px;
 }
