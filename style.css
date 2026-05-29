@@ -62,3 +62,85 @@
     padding: 1px 5px;
     border-radius: 4px;
 }
+/* ===== MÜŞTERİ SEKMESİ TELEFON & WHATSAPP HİZALAMA STİLLERİ ===== */
+.inline-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0 12px;
+    width: 260px;
+}
+
+.inline-search-wrapper i {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-right: 8px;
+}
+
+.inline-search-wrapper input {
+    border: none;
+    outline: none;
+    padding: 8px 0;
+    width: 100%;
+    font-size: 0.875rem;
+    background: transparent;
+}
+
+.customer-phone-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.phone-link-clickable {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.phone-link-clickable:hover {
+    color: var(--primary);
+}
+
+.whatsapp-direct-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    background-color: #22c55e;
+    color: white !important;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.whatsapp-direct-btn:hover {
+    background-color: #16a34a;
+    transform: scale(1.15);
+}
+
+/* Fotoğraf Sınırı Sayacı ve Rozeti */
+.photo-preview-item {
+    position: relative;
+}
+
+.photo-order-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(15, 23, 42, 0.75);
+    color: white;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
