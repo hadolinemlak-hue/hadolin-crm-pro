@@ -2,16 +2,17 @@
   "listings": [
     {
       "id": 1,
-      "title": "3+1 Daire Merkez",
-      "price": "2.500.000 ₺",
-      "phone": "+905555555555",
-      "img": "https://picsum.photos/400/300?1"
+      "title": "Merkez 2+1 Daire",
+      "price": 2500000,
+      "location": "Çerkezköy"
     }
   ],
   "customers": [
     {
+      "id": 1,
       "name": "Ahmet Yılmaz",
-      "phone": "+905555555555"
+      "phone": "905551112233",
+      "status": "aktif"
     }
   ]
 }
