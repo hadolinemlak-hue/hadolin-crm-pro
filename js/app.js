@@ -410,7 +410,13 @@ async function deletePortfolio(id) {
 // ===== PHOTO HANDLING =====
 function renderPhotoPreview() {
     const grid = document.getElementById('photoPreviewGrid');
-    grid.innerHTML = state.tempPhotos.map((photo, i) => `
+    const count = state.tempPhotos.length;
+    const counterHtml = count > 0
+        ? `<div style="grid-column:1/-1;font-size:.78rem;color:var(--text-muted);text-align:right;margin-bottom:4px">
+               <span style="font-weight:600;color:${count >= MAX_PHOTOS ? 'var(--danger)' : 'var(--text)'}">${count}</span> / ${MAX_PHOTOS} fotoğraf
+           </div>`
+        : '';
+    grid.innerHTML = counterHtml + state.tempPhotos.map((photo, i) => `
         <div class="photo-preview-item">
             <img src="${photo.url}" alt="" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖼️</text></svg>'">
             <button type="button" class="photo-remove" onclick="removePhoto(${i})">
@@ -425,14 +431,48 @@ function removePhoto(idx) {
     renderPhotoPreview();
 }
 
-function handleFileUpload(files) {
-    Array.from(files).forEach(file => {
+const MAX_PHOTOS = 10;
+const MAX_WIDTH = 1200;
+const PHOTO_QUALITY = 0.75;
+
+function compressImage(file) {
+    return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = (e) => {
-            state.tempPhotos.push({ url: e.target.result, type: 'file', file });
-            renderPhotoPreview();
+            const img = new Image();
+            img.onload = () => {
+                let { width, height } = img;
+                if (width > MAX_WIDTH) {
+                    height = Math.round((height * MAX_WIDTH) / width);
+                    width = MAX_WIDTH;
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', PHOTO_QUALITY));
+            };
+            img.src = e.target.result;
         };
         reader.readAsDataURL(file);
+    });
+}
+
+function handleFileUpload(files) {
+    const remaining = MAX_PHOTOS - state.tempPhotos.length;
+    if (remaining <= 0) {
+        toast(`En fazla ${MAX_PHOTOS} fotoğraf ekleyebilirsiniz!`, 'error');
+        return;
+    }
+    const toAdd = Array.from(files).slice(0, remaining);
+    if (Array.from(files).length > remaining) {
+        toast(`${Array.from(files).length - remaining} fotoğraf limit nedeniyle eklenmedi.`, 'warning');
+    }
+    toAdd.forEach(async (file) => {
+        const url = await compressImage(file);
+        state.tempPhotos.push({ url, type: 'file', file });
+        renderPhotoPreview();
     });
 }
 
@@ -440,6 +480,10 @@ function addPhotoUrl() {
     const url = document.getElementById('photoUrlInput').value.trim();
     if (!url || !url.startsWith('http')) {
         toast('Geçerli bir URL girin!', 'error');
+        return;
+    }
+    if (state.tempPhotos.length >= MAX_PHOTOS) {
+        toast(`En fazla ${MAX_PHOTOS} fotoğraf ekleyebilirsiniz!`, 'error');
         return;
     }
     state.tempPhotos.push({ url, type: 'url' });
