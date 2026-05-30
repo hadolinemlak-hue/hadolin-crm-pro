@@ -1,1 +1,144 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hadolin CRM</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<header>
+  <h1>Hadolin CRM</h1>
+</header>
+
+<nav>
+  <button onclick="showSection('dashboard')">Dashboard</button>
+  <button onclick="showSection('portfolio')">Portföy</button>
+  <button onclick="showSection('customers')">Müşteri</button>
+  <button onclick="showSection('matching')">Eşleştirme</button>
+</nav>
+
+<main>
+
+  <section id="dashboard" class="active">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h2 id="portfolioCount">0</h2>
+        <p>Toplam İlan</p>
+      </div>
+      <div class="stat-card">
+        <h2 id="customerCount">0</h2>
+        <p>Toplam Müşteri</p>
+      </div>
+      <div class="stat-card">
+        <h2 id="matchCount">0</h2>
+        <p>Eşleştirme</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="portfolio">
+    <div class="card">
+      <h2>Yeni İlan Ekle</h2>
+      <input type="text" id="title" placeholder="İlan Başlığı (Örn: 3+1 Havuzlu Villa)">
+      <input type="number" id="price" placeholder="Fiyat (TL)">
+      <input type="text" id="description" placeholder="İlan Açıklaması">
+      <input type="file" id="images" multiple accept=".jpeg, .jpg, .png, image/jpeg, image/png">
+      <button class="primary-btn" onclick="addPortfolio()">İlanı Kaydet</button>
+    </div>
+
+    <hr class="section-divider">
+
+    <h2>Mevcut İlanlar (Portföyler)</h2>
+    <div class="filter-group">
+      <input type="text" id="portfolioSearch" placeholder="Başlık veya açıklamada ara...">
+      <div class="price-filters">
+        <input type="number" id="portfolioMinPrice" placeholder="Min Fiyat (TL)">
+        <input type="number" id="portfolioMaxPrice" placeholder="Max Fiyat (TL)">
+      </div>
+    </div>
+    
+    <div id="portfolioList" class="list-container"></div>
+  </section>
+
+  <section id="customers">
+    <div class="card">
+      <h2>Müşteri Ekle</h2>
+      <input type="text" id="customerName" placeholder="Ad Soyad">
+      <input type="text" id="customerPhone" placeholder="Telefon">
+      <input type="text" id="customerDemand" placeholder="Müşteri Talebi (Örn: 2+1 Satılık Daire)">
+      <input type="text" id="customerNote" placeholder="Özel Notlar">
+      <button class="primary-btn" onclick="addCustomer()">Müşteri Ekle</button>
+    </div>
+
+    <hr class="section-divider">
+
+    <h2>Müşteri Listesi</h2>
+    <input type="text" id="customerSearch" placeholder="İsim, talep veya nota göre filtrele...">
+    
+    <div id="customerList" class="list-container"></div>
+  </section>
+
+  <section id="matching">
+    <div class="card">
+      <h2>Eşleştirme Yap</h2>
+      <label for="matchCustomer">Müşteri Seçin (Talebiyle Birlikte):</label>
+      <select id="matchCustomer"></select>
+      
+      <label for="matchPortfolio">Eşleşecek Portföyü Seçin:</label>
+      <select id="matchPortfolio"></select>
+      
+      <button class="primary-btn" onclick="addMatch()">Eşleştir</button>
+    </div>
+
+    <hr class="section-divider">
+
+    <h2>Eşleştirme Listesi</h2>
+    <input type="text" id="matchSearch" placeholder="Müşteri adı, talebi veya ilan ara...">
+    
+    <div id="matchList" class="list-container"></div>
+  </section>
+
+</main>
+
+<div id="imageModal" class="image-modal">
+  <span class="close-modal" onclick="closeImageModal()">&times;</span>
+  <div class="modal-gallery-container">
+    <button class="gallery-nav prev-btn" onclick="changeModalImage(-1)">&#10094;</button>
+    <img class="modal-content" id="modalTargetImg" alt="Büyük Görsel">
+    <button class="gallery-nav next-btn" onclick="changeModalImage(1)">&#10095;</button>
+  </div>
+  <div id="modalCaption" class="modal-caption">1 / 1</div>
+</div>
+
+<div id="editPortfolioModal" class="edit-portfolio-modal">
+  <div class="edit-modal-card">
+    <h2>İlan Düzenle</h2>
+    <input type="hidden" id="editPortfolioId">
+    
+    <label>İlan Başlığı:</label>
+    <input type="text" id="editTitle">
+    
+    <label>Fiyat (TL):</label>
+    <input type="number" id="editPrice">
+    
+    <label>Açıklama:</label>
+    <textarea id="editDescription" rows="3" style="width:100%; padding:14px; margin-top:10px; border:1px solid #1f4fb4; border-radius:12px; background:#173777; color:white; font-size:14px; resize:none;"></textarea>
+    
+    <label style="margin-top:20px; font-weight:bold;">Mevcut Fotoğraflar (Silmek için üzerine tıklayın):</label>
+    <div id="editExistingImages" class="edit-images-preview"></div>
+    
+    <label style="margin-top:15px;">Yeni Fotoğraf Ekle (Maksimum 3 adet):</label>
+    <input type="file" id="editNewImages" multiple accept=".jpeg, .jpg, .png, image/jpeg, image/png">
+    
+    <div class="action-btns">
+      <button class="edit-btn" onclick="savePortfolioEdit()">Değişiklikleri Kaydet</button>
+      <button class="delete-btn" onclick="closePortfolioEditModal()">İptal</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
