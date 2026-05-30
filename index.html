@@ -1,25 +1,22 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>HADOLIN CRM</title>
 
     <!-- GOOGLE FONT -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet"
-    >
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
 
     <!-- FONT AWESOME -->
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-    <!-- CSS FILES -->
+    <!-- CSS -->
     <link rel="stylesheet" href="./css/variables.css">
     <link rel="stylesheet" href="./css/base.css">
     <link rel="stylesheet" href="./css/layout.css">
@@ -29,6 +26,7 @@
     <link rel="stylesheet" href="./css/cards.css">
     <link rel="stylesheet" href="./css/app.css">
     <link rel="stylesheet" href="./css/responsive.css">
+
 </head>
 
 <body>
@@ -78,7 +76,9 @@
         </nav>
 
         <div class="sidebar-footer">
+
             <div class="user-info">
+
                 <div class="user-avatar">
                     <i class="fa-solid fa-user"></i>
                 </div>
@@ -87,44 +87,61 @@
                     <div class="user-name">Emlak Danışmanı</div>
                     <div class="user-role">Yönetici</div>
                 </div>
+
             </div>
+
         </div>
 
     </aside>
 
-    <!-- MAIN -->
+    <!-- MAIN CONTENT -->
     <main class="main-content">
 
         <!-- TOPBAR -->
         <header class="topbar">
 
             <div class="topbar-left">
-                <h1 class="page-title">Dashboard</h1>
+
+                <button class="mobile-menu-btn">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <h1 class="page-title">
+                    Dashboard
+                </h1>
+
             </div>
 
             <div class="topbar-right">
 
                 <div class="search-box">
+
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" placeholder="Ara..." />
+
+                    <input type="text" placeholder="Ara...">
+
                 </div>
 
                 <button class="notification-btn">
+
                     <i class="fa-solid fa-bell"></i>
+
                     <span class="badge">0</span>
+
                 </button>
 
             </div>
 
         </header>
 
-        <!-- CONTENT -->
+        <!-- PAGE CONTENT -->
         <div class="page-content">
 
             <!-- STATS -->
             <div class="stats-grid">
 
                 <div class="stat-card blue">
+
                     <div class="stat-icon">
                         <i class="fa-solid fa-building"></i>
                     </div>
@@ -133,9 +150,11 @@
                         <div class="stat-value" id="portfolioCount">0</div>
                         <div class="stat-label">Toplam Portföy</div>
                     </div>
+
                 </div>
 
                 <div class="stat-card green">
+
                     <div class="stat-icon">
                         <i class="fa-solid fa-users"></i>
                     </div>
@@ -144,9 +163,11 @@
                         <div class="stat-value">0</div>
                         <div class="stat-label">Aktif Müşteri</div>
                     </div>
+
                 </div>
 
                 <div class="stat-card orange">
+
                     <div class="stat-icon">
                         <i class="fa-solid fa-handshake"></i>
                     </div>
@@ -155,9 +176,11 @@
                         <div class="stat-value">0</div>
                         <div class="stat-label">Eşleştirme</div>
                     </div>
+
                 </div>
 
                 <div class="stat-card purple">
+
                     <div class="stat-icon">
                         <i class="fa-solid fa-tag"></i>
                     </div>
@@ -166,16 +189,20 @@
                         <div class="stat-value">0</div>
                         <div class="stat-label">Satılık Portföy</div>
                     </div>
+
                 </div>
 
             </div>
 
-            <!-- ACTION -->
+            <!-- ACTIONS -->
             <div class="page-actions">
 
                 <button class="btn btn-primary" onclick="openModal()">
+
                     <i class="fa-solid fa-plus"></i>
+
                     Yeni Portföy
+
                 </button>
 
             </div>
@@ -193,14 +220,21 @@
         <div class="modal">
 
             <div class="modal-header">
+
                 <h2>
+
                     <i class="fa-solid fa-building"></i>
+
                     Yeni Portföy
+
                 </h2>
 
                 <button class="modal-close" onclick="closeModal()">
+
                     <i class="fa-solid fa-xmark"></i>
+
                 </button>
+
             </div>
 
             <div class="modal-body">
@@ -208,34 +242,63 @@
                 <div class="form-grid">
 
                     <div class="form-group full">
+
                         <label>İlan Başlığı</label>
-                        <input type="text" id="title" placeholder="Örn: 3+1 Lüks Daire">
+
+                        <input
+                            type="text"
+                            id="title"
+                            placeholder="Örn: 3+1 Lüks Daire"
+                        >
+
                     </div>
 
                     <div class="form-group">
+
                         <label>Fiyat</label>
-                        <input type="number" id="price" placeholder="7500000">
+
+                        <input
+                            type="number"
+                            id="price"
+                            placeholder="7500000"
+                        >
+
                     </div>
 
                     <div class="form-group">
+
                         <label>Konum</label>
-                        <input type="text" id="location" placeholder="Çerkezköy / Tekirdağ">
+
+                        <input
+                            type="text"
+                            id="location"
+                            placeholder="Çerkezköy / Tekirdağ"
+                        >
+
                     </div>
 
                     <div class="form-group full">
+
                         <label>Açıklama</label>
-                        <textarea id="description" placeholder="Portföy açıklaması..."></textarea>
+
+                        <textarea
+                            id="description"
+                            placeholder="Portföy açıklaması..."
+                        ></textarea>
+
                     </div>
 
                     <div class="form-group full">
+
                         <label>Fotoğraflar</label>
 
                         <input
                             type="file"
                             id="photoInput"
-                            multiple
                             accept="image/*"
+                            multiple
                         >
+
                     </div>
 
                 </div>
@@ -244,11 +307,17 @@
 
             <div class="modal-footer">
 
-                <button class="btn btn-secondary" onclick="closeModal()">
+                <button
+                    class="btn btn-secondary"
+                    onclick="closeModal()"
+                >
                     İptal
                 </button>
 
-                <button class="btn btn-primary" onclick="savePortfolio()">
+                <button
+                    class="btn btn-primary"
+                    onclick="savePortfolio()"
+                >
                     Kaydet
                 </button>
 
@@ -259,7 +328,8 @@
     </div>
 
     <!-- JS -->
-    <script src="app.js"></script>
+    <script src="./js/app.js"></script>
 
 </body>
+
 </html>
