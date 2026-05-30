@@ -1,0 +1,47 @@
+.btn {
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    min-height: 44px;
+
+    padding: 10px 16px;
+
+    border-radius: 8px;
+
+    border: none;
+
+    cursor: pointer;
+
+    font-weight: 600;
+
+    transition:
+    transform .2s ease,
+    background-color .2s ease,
+    color .2s ease;
+}
+
+.btn:active {
+    transform: scale(.98);
+}
+
+.btn-primary {
+    background: linear-gradient(
+    135deg,
+    #2563eb,
+    #7c3aed
+    );
+
+    color: white;
+}
+
+.btn-primary:hover {
+    opacity: .92;
+}
+
+.btn-secondary {
+    background: white;
+    border: 1px solid var(--border);
+}
