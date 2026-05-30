@@ -10,14 +10,8 @@ export const Storage = {
 
     get(key) {
 
-        const data = localStorage.getItem(key);
-
-        return data
-            ? JSON.parse(data)
-            : [];
-    },
-
-    remove(key) {
-        localStorage.removeItem(key);
+        return JSON.parse(
+            localStorage.getItem(key)
+        );
     }
 };
