@@ -433,6 +433,25 @@
                             <label>Tercih Edilen İlçe</label>
                             <input type="text" id="c_tercih_ilce" placeholder="Örn: Kadıköy">
                         </div>
+                        <form id="portfolioForm">
+
+                            <input type="text" id="title" placeholder="Başlık">
+
+                            <input type="number" id="price" placeholder="Fiyat">
+
+                            <input type="text" id="location" placeholder="Konum">
+
+                             <textarea id="description"></textarea>
+
+                            <input type="file" id="photoInput" multiple>
+
+                            <div id="photoPreview"></div>
+
+                            <button type="button" onclick="savePortfolio()">
+                                Kaydet
+                            </button>
+
+                        </form>
                         <div class="form-group full">
                             <label>Notlar</label>
                             <textarea id="c_notlar" rows="3" placeholder="Müşteri hakkında ek notlar..."></textarea>
