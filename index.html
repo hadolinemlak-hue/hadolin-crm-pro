@@ -2,10 +2,17 @@
 <html lang="tr">
 
 <head>
+
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    />
 
     <title>HADOLIN CRM</title>
+
+    <!-- FONT -->
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
 
@@ -14,27 +21,39 @@
         rel="stylesheet"
     >
 
+    <!-- ICON -->
+
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     >
 
+    <!-- CSS -->
+
     <link rel="stylesheet" href="./css/style.css">
+
 </head>
 
 <body>
 
     <!-- SIDEBAR -->
+
     <aside class="sidebar">
 
         <div class="sidebar-header">
+
             <div class="logo">
+
                 <i class="fa-solid fa-building"></i>
+
                 <span>HADOLIN CRM</span>
+
             </div>
+
         </div>
 
         <nav class="sidebar-nav">
+
             <ul>
 
                 <li>
@@ -66,6 +85,7 @@
                 </li>
 
             </ul>
+
         </nav>
 
         <div class="sidebar-footer">
@@ -73,12 +93,21 @@
             <div class="user-info">
 
                 <div class="user-avatar">
+
                     <i class="fa-solid fa-user"></i>
+
                 </div>
 
                 <div>
-                    <div class="user-name">Emlak Danışmanı</div>
-                    <div class="user-role">Yönetici</div>
+
+                    <div class="user-name">
+                        HADOLIN
+                    </div>
+
+                    <div class="user-role">
+                        Yönetici
+                    </div>
+
                 </div>
 
             </div>
@@ -87,23 +116,17 @@
 
     </aside>
 
-    <!-- MAIN CONTENT -->
+    <!-- MAIN -->
+
     <main class="main-content">
 
         <!-- TOPBAR -->
+
         <header class="topbar">
 
-            <div class="topbar-left">
-
-                <button class="mobile-menu-btn">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-
-                <h1 class="page-title">
-                    Dashboard
-                </h1>
-
-            </div>
+            <h1 class="page-title">
+                Dashboard
+            </h1>
 
             <div class="topbar-right">
 
@@ -111,26 +134,23 @@
 
                     <i class="fa-solid fa-magnifying-glass"></i>
 
-                    <input type="text" placeholder="Ara...">
+                    <input
+                        type="text"
+                        placeholder="Ara..."
+                    >
 
                 </div>
-
-                <button class="notification-btn">
-
-                    <i class="fa-solid fa-bell"></i>
-
-                    <span class="badge">0</span>
-
-                </button>
 
             </div>
 
         </header>
 
-        <!-- PAGE CONTENT -->
+        <!-- CONTENT -->
+
         <div class="page-content">
 
             <!-- STATS -->
+
             <div class="stats-grid">
 
                 <div class="stat-card blue">
@@ -140,8 +160,18 @@
                     </div>
 
                     <div>
-                        <div class="stat-value" id="portfolioCount">0</div>
-                        <div class="stat-label">Toplam Portföy</div>
+
+                        <div
+                            class="stat-value"
+                            id="portfolioCount"
+                        >
+                            0
+                        </div>
+
+                        <div class="stat-label">
+                            Toplam Portföy
+                        </div>
+
                     </div>
 
                 </div>
@@ -153,8 +183,15 @@
                     </div>
 
                     <div>
-                        <div class="stat-value">0</div>
-                        <div class="stat-label">Aktif Müşteri</div>
+
+                        <div class="stat-value">
+                            0
+                        </div>
+
+                        <div class="stat-label">
+                            Müşteri
+                        </div>
+
                     </div>
 
                 </div>
@@ -166,31 +203,29 @@
                     </div>
 
                     <div>
-                        <div class="stat-value">0</div>
-                        <div class="stat-label">Eşleştirme</div>
-                    </div>
 
-                </div>
+                        <div class="stat-value">
+                            0
+                        </div>
 
-                <div class="stat-card purple">
+                        <div class="stat-label">
+                            Eşleşme
+                        </div>
 
-                    <div class="stat-icon">
-                        <i class="fa-solid fa-tag"></i>
-                    </div>
-
-                    <div>
-                        <div class="stat-value">0</div>
-                        <div class="stat-label">Satılık Portföy</div>
                     </div>
 
                 </div>
 
             </div>
 
-            <!-- ACTIONS -->
+            <!-- ACTION -->
+
             <div class="page-actions">
 
-                <button class="btn btn-primary" onclick="openModal()">
+                <button
+                    id="openPortfolioModal"
+                    class="btn btn-primary"
+                >
 
                     <i class="fa-solid fa-plus"></i>
 
@@ -201,14 +236,22 @@
             </div>
 
             <!-- PORTFOLIOS -->
-            <div class="portfolio-grid" id="portfolioGrid"></div>
+
+            <div
+                class="portfolio-grid"
+                id="portfolioGrid"
+            ></div>
 
         </div>
 
     </main>
 
     <!-- MODAL -->
-    <div class="modal-overlay" id="modal">
+
+    <div
+        class="modal-overlay"
+        id="portfolioModal"
+    >
 
         <div class="modal">
 
@@ -222,7 +265,10 @@
 
                 </h2>
 
-                <button class="modal-close" onclick="closeModal()">
+                <button
+                    id="closePortfolioModal"
+                    class="modal-close"
+                >
 
                     <i class="fa-solid fa-xmark"></i>
 
@@ -236,19 +282,23 @@
 
                     <div class="form-group full">
 
-                        <label>İlan Başlığı</label>
+                        <label>
+                            Başlık
+                        </label>
 
                         <input
                             type="text"
                             id="title"
-                            placeholder="Örn: 3+1 Lüks Daire"
+                            placeholder="3+1 Lüks Daire"
                         >
 
                     </div>
 
                     <div class="form-group">
 
-                        <label>Fiyat</label>
+                        <label>
+                            Fiyat
+                        </label>
 
                         <input
                             type="number"
@@ -260,19 +310,23 @@
 
                     <div class="form-group">
 
-                        <label>Konum</label>
+                        <label>
+                            Konum
+                        </label>
 
                         <input
                             type="text"
                             id="location"
-                            placeholder="Çerkezköy / Tekirdağ"
+                            placeholder="Çerkezköy"
                         >
 
                     </div>
 
                     <div class="form-group full">
 
-                        <label>Açıklama</label>
+                        <label>
+                            Açıklama
+                        </label>
 
                         <textarea
                             id="description"
@@ -283,7 +337,9 @@
 
                     <div class="form-group full">
 
-                        <label>Fotoğraflar</label>
+                        <label>
+                            Fotoğraf
+                        </label>
 
                         <input
                             type="file"
@@ -301,17 +357,12 @@
             <div class="modal-footer">
 
                 <button
-                    class="btn btn-secondary"
-                    onclick="closeModal()"
-                >
-                    İptal
-                </button>
-
-                <button
+                    id="savePortfolio"
                     class="btn btn-primary"
-                    onclick="savePortfolio()"
                 >
+
                     Kaydet
+
                 </button>
 
             </div>
@@ -321,7 +372,11 @@
     </div>
 
     <!-- JS -->
-    <script src="./js/app.js"></script>
+
+    <script
+        type="module"
+        src="./js/app.js"
+    ></script>
 
 </body>
 
