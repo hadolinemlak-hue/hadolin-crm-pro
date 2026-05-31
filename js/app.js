@@ -1017,3 +1017,8 @@ document.addEventListener('DOMContentLoaded', () => {
         searchTimeout = setTimeout(() => handleGlobalSearch(e.target.value), 300);
     });
 
+    document.getElementById('mobileMenuBtn').addEventListener('click', openMobileSidebar);
+    document.getElementById('sidebarOverlay').addEventListener('click', closeMobileSidebar);
+
+    loadAll();
+});
