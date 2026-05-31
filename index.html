@@ -1,383 +1,76 @@
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yerel Fotoğraf Galerisi</title>
 
-    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="style.css">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    />
-
-    <title>HADOLIN CRM</title>
-
-    <!-- FONT -->
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet"
-    >
-
-    <!-- ICON -->
-
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
-
-    <!-- CSS -->
-
-    <link rel="stylesheet" href="./css/style.css">
-
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Fotoğraflar yalnızca cihazınızda saklanır.">
 </head>
-
 <body>
 
-    <!-- SIDEBAR -->
+    <div class="container">
 
-    <aside class="sidebar">
-
-        <div class="sidebar-header">
-
-            <div class="logo">
-
-                <i class="fa-solid fa-building"></i>
-
-                <span>HADOLIN CRM</span>
-
-            </div>
-
-        </div>
-
-        <nav class="sidebar-nav">
-
-            <ul>
-
-                <li>
-                    <a href="#" class="nav-item active">
-                        <i class="fa-solid fa-chart-line"></i>
-                        Dashboard
-                    </a>
-                </li>
-
-                <li>
-                    <a href="#" class="nav-item">
-                        <i class="fa-solid fa-building"></i>
-                        Portföyler
-                    </a>
-                </li>
-
-                <li>
-                    <a href="#" class="nav-item">
-                        <i class="fa-solid fa-users"></i>
-                        Müşteriler
-                    </a>
-                </li>
-
-                <li>
-                    <a href="#" class="nav-item">
-                        <i class="fa-solid fa-handshake"></i>
-                        Eşleştirme
-                    </a>
-                </li>
-
-            </ul>
-
-        </nav>
-
-        <div class="sidebar-footer">
-
-            <div class="user-info">
-
-                <div class="user-avatar">
-
-                    <i class="fa-solid fa-user"></i>
-
-                </div>
-
-                <div>
-
-                    <div class="user-name">
-                        HADOLIN
-                    </div>
-
-                    <div class="user-role">
-                        Yönetici
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </aside>
-
-    <!-- MAIN -->
-
-    <main class="main-content">
-
-        <!-- TOPBAR -->
-
-        <header class="topbar">
-
-            <h1 class="page-title">
-                Dashboard
-            </h1>
-
-            <div class="topbar-right">
-
-                <div class="search-box">
-
-                    <i class="fa-solid fa-magnifying-glass"></i>
-
-                    <input
-                        type="text"
-                        placeholder="Ara..."
-                    >
-
-                </div>
-
-            </div>
-
+        <header class="header">
+            <h1>📸 Yerel Fotoğraf Galerisi</h1>
+            <p>Fotoğraflar yalnızca cihazınızda saklanır</p>
         </header>
 
-        <!-- CONTENT -->
+        <section class="upload-box">
+            <label for="photoInput" class="upload-btn">
+                Fotoğraf Seç
+            </label>
 
-        <div class="page-content">
+            <input
+                type="file"
+                id="photoInput"
+                accept="image/*"
+                multiple
+            >
+        </section>
 
-            <!-- STATS -->
+        <div
+            id="loading"
+            class="loader"
+            style="display:none;"
+        ></div>
 
-            <div class="stats-grid">
-
-                <div class="stat-card blue">
-
-                    <div class="stat-icon">
-                        <i class="fa-solid fa-building"></i>
-                    </div>
-
-                    <div>
-
-                        <div
-                            class="stat-value"
-                            id="portfolioCount"
-                        >
-                            0
-                        </div>
-
-                        <div class="stat-label">
-                            Toplam Portföy
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="stat-card green">
-
-                    <div class="stat-icon">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-
-                    <div>
-
-                        <div class="stat-value">
-                            0
-                        </div>
-
-                        <div class="stat-label">
-                            Müşteri
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="stat-card orange">
-
-                    <div class="stat-icon">
-                        <i class="fa-solid fa-handshake"></i>
-                    </div>
-
-                    <div>
-
-                        <div class="stat-value">
-                            0
-                        </div>
-
-                        <div class="stat-label">
-                            Eşleşme
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- ACTION -->
-
-            <div class="page-actions">
-
-                <button
-                    id="openPortfolioModal"
-                    class="btn btn-primary"
-                >
-
-                    <i class="fa-solid fa-plus"></i>
-
-                    Yeni Portföy
-
-                </button>
-
-            </div>
-
-            <!-- PORTFOLIOS -->
-
-            <div
-                class="portfolio-grid"
-                id="portfolioGrid"
-            ></div>
-
+        <div
+            id="emptyState"
+            class="empty-state"
+        >
+            <h2>Henüz fotoğraf yok</h2>
+            <p>İlk fotoğrafınızı yükleyin.</p>
         </div>
 
-    </main>
-
-    <!-- MODAL -->
-
-    <div
-        class="modal-overlay"
-        id="portfolioModal"
-    >
-
-        <div class="modal">
-
-            <div class="modal-header">
-
-                <h2>
-
-                    <i class="fa-solid fa-building"></i>
-
-                    Yeni Portföy
-
-                </h2>
-
-                <button
-                    id="closePortfolioModal"
-                    class="modal-close"
-                >
-
-                    <i class="fa-solid fa-xmark"></i>
-
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div class="form-grid">
-
-                    <div class="form-group full">
-
-                        <label>
-                            Başlık
-                        </label>
-
-                        <input
-                            type="text"
-                            id="title"
-                            placeholder="3+1 Lüks Daire"
-                        >
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label>
-                            Fiyat
-                        </label>
-
-                        <input
-                            type="number"
-                            id="price"
-                            placeholder="7500000"
-                        >
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label>
-                            Konum
-                        </label>
-
-                        <input
-                            type="text"
-                            id="location"
-                            placeholder="Çerkezköy"
-                        >
-
-                    </div>
-
-                    <div class="form-group full">
-
-                        <label>
-                            Açıklama
-                        </label>
-
-                        <textarea
-                            id="description"
-                            placeholder="Portföy açıklaması..."
-                        ></textarea>
-
-                    </div>
-
-                    <div class="form-group full">
-
-                        <label>
-                            Fotoğraf
-                        </label>
-
-                        <input
-                            type="file"
-                            id="photoInput"
-                            accept="image/*"
-                            multiple
-                        >
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="modal-footer">
-
-                <button
-                    id="savePortfolio"
-                    class="btn btn-primary"
-                >
-
-                    Kaydet
-
-                </button>
-
-            </div>
-
-        </div>
+        <section
+            id="gallery"
+            class="gallery"
+        >
+        </section>
 
     </div>
 
-    <!-- JS -->
+    <template id="photoTemplate">
+        <div class="photo-card">
 
-    <script
-        type="module"
-        src="./js/app.js"
-    ></script>
+            <button class="delete-btn">
+                ×
+            </button>
+
+            <img
+                src=""
+                alt="Fotoğraf"
+                loading="lazy"
+            >
+
+        </div>
+    </template>
+
+    <script src="app.js"></script>
 
 </body>
-
 </html>
