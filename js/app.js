@@ -977,19 +977,19 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCustomers(document.getElementById('filterCustTur').value, document.getElementById('filterCustDurum').value);
     });
 
-    document.querySelectorAll('.form-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('form-tab')) {
+            const tab = e.target;
             const tabId = tab.dataset.tab;
-            // Sadece aynı modal içindeki tab'ları değiştir
-            const modal = tab.closest('.modal-overlay') || tab.closest('form')?.closest('.modal-overlay');
-            if (modal) {
-                modal.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
-                modal.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            const form = tab.closest('form');
+            if (form) {
+                form.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
+                form.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const contentEl = document.getElementById('tab-' + tabId);
+                if (contentEl) contentEl.classList.add('active');
             }
-            tab.classList.add('active');
-            const contentEl = document.getElementById('tab-' + tabId);
-            if (contentEl) contentEl.classList.add('active');
-        });
+        }
     });
 
     const photoSelectBtn = document.getElementById('photoSelectBtn');
@@ -1017,8 +1017,3 @@ document.addEventListener('DOMContentLoaded', () => {
         searchTimeout = setTimeout(() => handleGlobalSearch(e.target.value), 300);
     });
 
-    document.getElementById('mobileMenuBtn').addEventListener('click', openMobileSidebar);
-    document.getElementById('sidebarOverlay').addEventListener('click', closeMobileSidebar);
-
-    loadAll();
-});
