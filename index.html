@@ -295,13 +295,9 @@
                                 <label>Alan (m²)</label>
                                 <input type="number" id="p_alan" placeholder="0" min="0">
                             </div>
-                            <div class="form-group">
-                                <label>İl *</label>
-                                <input type="text" id="p_il" placeholder="Örn: İstanbul" required>
-                            </div>
-                            <div class="form-group">
-                                <label>İlçe *</label>
-                                <input type="text" id="p_ilce" placeholder="Örn: Kadıköy" required>
+                            <div class="form-group full">
+                                <label>İl / İlçe *</label>
+                                <input type="text" id="p_konum" placeholder="Örn: İstanbul, Kadıköy" required>
                             </div>
                             <div class="form-group full">
                                 <label>Adres</label>
@@ -390,21 +386,13 @@
                 <form id="customerForm">
                     <input type="hidden" id="customerId">
                     <div class="form-grid">
-                        <div class="form-group">
-                            <label>Ad *</label>
-                            <input type="text" id="c_ad" placeholder="Ad" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Soyad *</label>
-                            <input type="text" id="c_soyad" placeholder="Soyad" required>
+                        <div class="form-group full">
+                            <label>Ad Soyad *</label>
+                            <input type="text" id="c_ad_soyad" placeholder="Örn: Ahmet Yılmaz" required>
                         </div>
                         <div class="form-group">
                             <label>Cep Telefonu *</label>
                             <input type="tel" id="c_telefon" placeholder="05XX XXX XX XX" required>
-                        </div>
-                        <div class="form-group">
-                            <label>E-posta</label>
-                            <input type="email" id="c_email" placeholder="ornek@email.com">
                         </div>
                         <div class="form-group">
                             <label>İstediği Emlak Türü *</label>
@@ -433,13 +421,9 @@
                             <label>Max Bütçe (₺) *</label>
                             <input type="number" id="c_butce_max" placeholder="0" required min="0">
                         </div>
-                        <div class="form-group">
-                            <label>Tercih Edilen İl</label>
-                            <input type="text" id="c_tercih_il" placeholder="Örn: İstanbul">
-                        </div>
-                        <div class="form-group">
-                            <label>Tercih Edilen İlçe</label>
-                            <input type="text" id="c_tercih_ilce" placeholder="Örn: Kadıköy">
+                        <div class="form-group full">
+                            <label>Tercih Edilen Konum</label>
+                            <input type="text" id="c_tercih_konum" placeholder="Örn: Kadıköy, İstanbul">
                         </div>
                         <div class="form-group full">
                             <label>Notlar</label>
@@ -477,6 +461,26 @@
                 <button class="btn btn-secondary" data-modal="portfolioDetailModal">Kapat</button>
                 <button class="btn btn-warning" id="detailEditBtn"><i class="fas fa-edit"></i> Düzenle</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Photo Gallery -->
+    <div class="modal-overlay" id="photoGalleryModal">
+        <div class="photo-gallery-container">
+            <button class="photo-gallery-close" onclick="closeModal('photoGalleryModal')">
+                <i class="fas fa-times"></i>
+            </button>
+            <button class="photo-gallery-prev" onclick="prevPhoto()">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="photo-gallery-viewer">
+                <img id="galleryImage" src="" alt="Portföy fotoğrafı" />
+                <div class="photo-counter" id="photoCounter"></div>
+            </div>
+            <button class="photo-gallery-next" onclick="nextPhoto()">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            <div class="photo-gallery-thumbnails" id="galleryThumbs"></div>
         </div>
     </div>
 
