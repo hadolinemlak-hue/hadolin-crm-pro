@@ -980,10 +980,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.form-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             const tabId = tab.dataset.tab;
-            document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            // Sadece aynı modal içindeki tab'ları değiştir
+            const modal = tab.closest('.modal-overlay') || tab.closest('form')?.closest('.modal-overlay');
+            if (modal) {
+                modal.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
+                modal.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            }
             tab.classList.add('active');
-            document.getElementById('tab-' + tabId).classList.add('active');
+            const contentEl = document.getElementById('tab-' + tabId);
+            if (contentEl) contentEl.classList.add('active');
         });
     });
 
