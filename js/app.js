@@ -1,6 +1,5 @@
 /* ===== EmlakPro - Ana Uygulama Dosyası ===== */
 
-// ===== STATE =====
 const state = {
     portfolios: [],
     customers: [],
@@ -8,18 +7,18 @@ const state = {
     editingPortfolio: null,
     editingCustomer: null,
     tempPhotos: [],
+    currentGalleryPhotos: [],
+    currentGalleryIndex: 0,
 };
 
 // ===== LOCAL STORAGE =====
 function saveToStorage() {
     try {
-        // Fotoğrafları ayrı sakla (büyük veri)
         localStorage.setItem('ep_portfolios', JSON.stringify(
             state.portfolios.map(p => ({ ...p, fotograflar: p.fotograflar || [] }))
         ));
         localStorage.setItem('ep_customers', JSON.stringify(state.customers));
     } catch (e) {
-        // localStorage dolu olabilir (fotoğraf base64 çok yer tutar)
         toast('Depolama alanı dolmak üzere! Eski kayıtları silin.', 'warning');
     }
 }
@@ -117,7 +116,6 @@ function navigate(page) {
     closeMobileSidebar();
 }
 
-// ===== LOAD DATA =====
 function loadAll() {
     loadFromStorage();
     renderDashboard();
@@ -144,6 +142,7 @@ function renderDashboard() {
     } else {
         rp.innerHTML = recent.map(p => {
             const photo = getFirstPhoto(p.fotograflar);
+            const [il, ilce] = parseKonum(p.konum);
             return `
             <div class="recent-item" onclick="navigate('portfolios')">
                 <div class="recent-thumb">
@@ -151,7 +150,7 @@ function renderDashboard() {
                 </div>
                 <div class="recent-info">
                     <div class="recent-title">${p.baslik || 'İsimsiz Portföy'}</div>
-                    <div class="recent-sub">${p.ilce || ''} ${p.il || ''} · ${TUR_LABELS[p.tur] || p.tur}</div>
+                    <div class="recent-sub">${ilce || ''} ${il || ''} · ${TUR_LABELS[p.tur] || p.tur}</div>
                 </div>
                 <div class="recent-price">${formatPrice(p.fiyat)}</div>
             </div>`;
@@ -163,16 +162,32 @@ function renderDashboard() {
     if (recentC.length === 0) {
         rc.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>Henüz müşteri eklenmemiş</p></div>';
     } else {
-        rc.innerHTML = recentC.map(c => `
+        rc.innerHTML = recentC.map(c => {
+            const [ad, soyad] = parseAdSoyad(c.ad_soyad);
+            return `
             <div class="recent-item" onclick="navigate('customers')">
                 <div class="recent-thumb"><i class="fas fa-user"></i></div>
                 <div class="recent-info">
-                    <div class="recent-title">${c.ad} ${c.soyad}</div>
+                    <div class="recent-title">${ad} ${soyad}</div>
                     <div class="recent-sub">${TUR_LABELS[c.istek_tur] || ''} · ${DURUM_LABELS[c.istek_durum] || ''}</div>
                 </div>
                 <div style="font-size:.75rem;color:var(--text-muted)">${formatPrice(c.butce_min)} – ${formatPrice(c.butce_max)}</div>
             </div>`).join('');
     }
+}
+
+function parseAdSoyad(str) {
+    if (!str) return ['', ''];
+    const parts = str.trim().split(/\s+/);
+    if (parts.length === 1) return [parts[0], ''];
+    return [parts[0], parts.slice(1).join(' ')];
+}
+
+function parseKonum(str) {
+    if (!str) return ['', ''];
+    const parts = str.split(',').map(s => s.trim());
+    if (parts.length === 1) return [parts[0], ''];
+    return [parts[parts.length - 1], parts.slice(0, -1).join(', ')];
 }
 
 // ===== PORTFOLIOS =====
@@ -197,11 +212,12 @@ function renderPortfolios(filterTur = '', filterDurum = '') {
     grid.innerHTML = list.map(p => {
         const photo = getFirstPhoto(p.fotograflar);
         const photoCount = (p.fotograflar || []).length;
+        const [il, ilce] = parseKonum(p.konum);
         return `
         <div class="portfolio-card" onclick="showPortfolioDetail('${p.id}')">
             <div style="position:relative">
                 ${photo
-                    ? `<div class="portfolio-image"><img src="${photo}" alt="${p.baslik}" onerror="this.parentElement.innerHTML=getPlaceholder()"></div>`
+                    ? `<div class="portfolio-image"><img src="${photo}" alt="${p.baslik}"></div>`
                     : `<div class="portfolio-image-placeholder"><i class="fas fa-building"></i><span>Fotoğraf Yok</span></div>`
                 }
                 <div class="portfolio-badges">
@@ -212,7 +228,7 @@ function renderPortfolios(filterTur = '', filterDurum = '') {
             </div>
             <div class="portfolio-info">
                 <div class="portfolio-title">${p.baslik || 'İsimsiz Portföy'}</div>
-                <div class="portfolio-location"><i class="fas fa-map-marker-alt"></i>${p.ilce || ''}${p.ilce && p.il ? ', ' : ''}${p.il || ''}</div>
+                <div class="portfolio-location"><i class="fas fa-map-marker-alt"></i>${ilce || ''}${ilce && il ? ', ' : ''}${il || ''}</div>
                 <div class="portfolio-price">${formatPrice(p.fiyat)}</div>
                 <div class="portfolio-meta">
                     ${p.alan ? `<span><i class="fas fa-ruler-combined"></i> ${p.alan} m²</span>` : ''}
@@ -232,10 +248,6 @@ function renderPortfolios(filterTur = '', filterDurum = '') {
     }).join('');
 }
 
-function getPlaceholder() {
-    return `<div class="portfolio-image-placeholder"><i class="fas fa-building"></i><span>Fotoğraf Yüklenemedi</span></div>`;
-}
-
 function showPortfolioDetail(id) {
     const p = state.portfolios.find(x => x.id === id);
     if (!p) return;
@@ -244,10 +256,11 @@ function showPortfolioDetail(id) {
     document.getElementById('detailEditBtn').onclick = () => { closeModal('portfolioDetailModal'); editPortfolio(id); };
 
     const photos = p.fotograflar || [];
+    const [il, ilce] = parseKonum(p.konum);
     const content = `
         ${photos.length > 0 ? `
         <div class="detail-images">
-            ${photos.map(url => `<img src="${url}" alt="" onclick="window.open('${url}','_blank')" style="cursor:pointer">`).join('')}
+            ${photos.map((url, i) => `<img src="${url}" alt="" onclick="openPhotoGallery('${id}', ${i})" style="cursor:pointer">`).join('')}
         </div>` : ''}
         <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
             <span class="badge-pill badge-${p.durum}" style="font-size:.8rem;padding:4px 12px">${DURUM_LABELS[p.durum] || p.durum}</span>
@@ -255,7 +268,7 @@ function showPortfolioDetail(id) {
         </div>
         <div class="detail-price">${formatPrice(p.fiyat)}</div>
         <div class="detail-info-grid">
-            <div class="detail-info-item"><label>Konum</label><span><i class="fas fa-map-marker-alt" style="color:var(--primary)"></i> ${p.ilce || ''}${p.ilce && p.il ? ', ' : ''}${p.il || '-'}</span></div>
+            <div class="detail-info-item"><label>Konum</label><span><i class="fas fa-map-marker-alt" style="color:var(--primary)"></i> ${ilce || ''}${ilce && il ? ', ' : ''}${il || '-'}</span></div>
             <div class="detail-info-item"><label>Alan</label><span>${p.alan ? p.alan + ' m²' : '-'}</span></div>
             ${p.oda_sayisi ? `<div class="detail-info-item"><label>Oda Sayısı</label><span>${p.oda_sayisi}</span></div>` : ''}
             ${p.kat ? `<div class="detail-info-item"><label>Kat</label><span>${p.kat}</span></div>` : ''}
@@ -267,6 +280,55 @@ function showPortfolioDetail(id) {
 
     document.getElementById('portfolioDetailContent').innerHTML = content;
     openModal('portfolioDetailModal');
+}
+
+function openPhotoGallery(portfolioId, index) {
+    const p = state.portfolios.find(x => x.id === portfolioId);
+    if (!p || !p.fotograflar) return;
+
+    state.currentGalleryPhotos = p.fotograflar;
+    state.currentGalleryIndex = index || 0;
+
+    updatePhotoGallery();
+    openModal('photoGalleryModal');
+
+    // Keyboard shortcuts
+    document.onkeydown = (e) => {
+        if (document.getElementById('photoGalleryModal').classList.contains('active')) {
+            if (e.key === 'ArrowLeft') prevPhoto();
+            if (e.key === 'ArrowRight') nextPhoto();
+            if (e.key === 'Escape') closeModal('photoGalleryModal');
+        }
+    };
+}
+
+function updatePhotoGallery() {
+    const photos = state.currentGalleryPhotos;
+    const idx = state.currentGalleryIndex;
+
+    document.getElementById('galleryImage').src = photos[idx];
+    document.getElementById('photoCounter').textContent = `${idx + 1} / ${photos.length}`;
+
+    const thumbs = document.getElementById('galleryThumbs');
+    thumbs.innerHTML = photos.map((photo, i) => `
+        <div class="photo-gallery-thumb ${i === idx ? 'active' : ''}" onclick="state.currentGalleryIndex = ${i}; updatePhotoGallery()">
+            <img src="${photo}" alt="">
+        </div>
+    `).join('');
+}
+
+function prevPhoto() {
+    if (state.currentGalleryIndex > 0) {
+        state.currentGalleryIndex--;
+        updatePhotoGallery();
+    }
+}
+
+function nextPhoto() {
+    if (state.currentGalleryIndex < state.currentGalleryPhotos.length - 1) {
+        state.currentGalleryIndex++;
+        updatePhotoGallery();
+    }
 }
 
 function showPortfolioForm(id = null) {
@@ -287,8 +349,7 @@ function showPortfolioForm(id = null) {
         document.getElementById('p_durum').value = p.durum || '';
         document.getElementById('p_fiyat').value = p.fiyat || '';
         document.getElementById('p_alan').value = p.alan || '';
-        document.getElementById('p_il').value = p.il || '';
-        document.getElementById('p_ilce').value = p.ilce || '';
+        document.getElementById('p_konum').value = p.konum || '';
         document.getElementById('p_adres').value = p.adres || '';
         document.getElementById('p_oda').value = p.oda_sayisi || '';
         document.getElementById('p_kat').value = p.kat || '';
@@ -315,10 +376,9 @@ function savePortfolio() {
     const tur = document.getElementById('p_tur').value;
     const durum = document.getElementById('p_durum').value;
     const fiyat = document.getElementById('p_fiyat').value;
-    const il = document.getElementById('p_il').value.trim();
-    const ilce = document.getElementById('p_ilce').value.trim();
+    const konum = document.getElementById('p_konum').value.trim();
 
-    if (!baslik || !tur || !durum || !fiyat || !il || !ilce) {
+    if (!baslik || !tur || !durum || !fiyat || !konum) {
         toast('Zorunlu alanları doldurun!', 'error');
         document.querySelectorAll('.form-tab')[0].click();
         return;
@@ -330,7 +390,7 @@ function savePortfolio() {
         baslik, tur, durum,
         fiyat: Number(fiyat),
         alan: Number(document.getElementById('p_alan').value) || 0,
-        il, ilce,
+        konum,
         adres: document.getElementById('p_adres').value.trim(),
         oda_sayisi: document.getElementById('p_oda').value,
         kat: document.getElementById('p_kat').value.trim(),
@@ -478,6 +538,7 @@ function renderCustomers(filterTur = '', filterDurum = '') {
     }
 
     tbody.innerHTML = list.map(c => {
+        const [ad, soyad] = parseAdSoyad(c.ad_soyad);
         const phone = c.telefon || '';
         const callUrl = phone ? formatPhoneForCall(phone) : '#';
         const waUrl = phone ? formatPhoneForWhatsApp(phone) : '#';
@@ -485,8 +546,7 @@ function renderCustomers(filterTur = '', filterDurum = '') {
         <tr>
             <td>
                 <div class="customer-name">
-                    ${c.ad} ${c.soyad}
-                    ${c.email ? `<span>${c.email}</span>` : ''}
+                    ${ad} ${soyad}
                 </div>
             </td>
             <td>
@@ -510,7 +570,7 @@ function renderCustomers(filterTur = '', filterDurum = '') {
                     ? `${formatPrice(c.butce_min)} – ${formatPrice(c.butce_max)}`
                     : '-'}
             </td>
-            <td style="font-size:.8rem">${c.tercih_ilce || ''}${c.tercih_ilce && c.tercih_il ? ', ' : ''}${c.tercih_il || ''}</td>
+            <td style="font-size:.8rem">${c.tercih_konum || ''}</td>
             <td>
                 <div class="action-btns">
                     <button class="btn btn-success btn-sm btn-icon" onclick="findMatches('${c.id}')" title="Eşleştir">
@@ -535,16 +595,13 @@ function showCustomerForm(id = null) {
         if (!c) return;
         document.getElementById('customerModalTitle').innerHTML = `<i class="fas fa-user-edit"></i> Müşteri Düzenle`;
         document.getElementById('customerId').value = id;
-        document.getElementById('c_ad').value = c.ad || '';
-        document.getElementById('c_soyad').value = c.soyad || '';
+        document.getElementById('c_ad_soyad').value = c.ad_soyad || '';
         document.getElementById('c_telefon').value = c.telefon || '';
-        document.getElementById('c_email').value = c.email || '';
         document.getElementById('c_istek_tur').value = c.istek_tur || '';
         document.getElementById('c_istek_durum').value = c.istek_durum || '';
         document.getElementById('c_butce_min').value = c.butce_min || '';
         document.getElementById('c_butce_max').value = c.butce_max || '';
-        document.getElementById('c_tercih_il').value = c.tercih_il || '';
-        document.getElementById('c_tercih_ilce').value = c.tercih_ilce || '';
+        document.getElementById('c_tercih_konum').value = c.tercih_konum || '';
         document.getElementById('c_notlar').value = c.notlar || '';
         document.getElementById('c_durum').value = c.durum || 'aktif';
     } else {
@@ -559,27 +616,24 @@ function showCustomerForm(id = null) {
 function editCustomer(id) { showCustomerForm(id); }
 
 function saveCustomer() {
-    const ad = document.getElementById('c_ad').value.trim();
-    const soyad = document.getElementById('c_soyad').value.trim();
+    const ad_soyad = document.getElementById('c_ad_soyad').value.trim();
     const telefon = document.getElementById('c_telefon').value.trim();
     const istek_tur = document.getElementById('c_istek_tur').value;
     const istek_durum = document.getElementById('c_istek_durum').value;
     const butce_min = document.getElementById('c_butce_min').value;
     const butce_max = document.getElementById('c_butce_max').value;
 
-    if (!ad || !soyad || !telefon || !istek_tur || !istek_durum || !butce_min || !butce_max) {
+    if (!ad_soyad || !telefon || !istek_tur || !istek_durum || !butce_min || !butce_max) {
         toast('Zorunlu alanları doldurun!', 'error');
         return;
     }
 
     const data = {
-        ad, soyad, telefon,
-        email: document.getElementById('c_email').value.trim(),
+        ad_soyad, telefon,
         istek_tur, istek_durum,
         butce_min: Number(butce_min),
         butce_max: Number(butce_max),
-        tercih_il: document.getElementById('c_tercih_il').value.trim(),
-        tercih_ilce: document.getElementById('c_tercih_ilce').value.trim(),
+        tercih_konum: document.getElementById('c_tercih_konum').value.trim(),
         notlar: document.getElementById('c_notlar').value.trim(),
         durum: document.getElementById('c_durum').value,
     };
@@ -618,8 +672,7 @@ function deleteCustomer(id) {
 
 // ===== MATCHING =====
 function calculateCompatibility(customer, portfolio) {
-    let score = 0;
-    let maxScore = 0;
+    let score = 0, maxScore = 0;
 
     maxScore += 40;
     if (customer.istek_tur === portfolio.tur) score += 40;
@@ -637,13 +690,10 @@ function calculateCompatibility(customer, portfolio) {
     else if (fiyat <= max * 1.1) score += 10;
 
     maxScore += 10;
-    if (customer.tercih_il && portfolio.il &&
-        customer.tercih_il.toLowerCase() === portfolio.il.toLowerCase()) {
-        score += 5;
-        if (customer.tercih_ilce && portfolio.ilce &&
-            customer.tercih_ilce.toLowerCase() === portfolio.ilce.toLowerCase()) {
-            score += 5;
-        }
+    if (customer.tercih_konum && portfolio.konum) {
+        const cLower = customer.tercih_konum.toLowerCase();
+        const pLower = portfolio.konum.toLowerCase();
+        if (pLower.includes(cLower) || cLower.includes(pLower)) score += 10;
     }
 
     return Math.round((score / maxScore) * 100);
@@ -668,6 +718,7 @@ function renderMatching() {
     }
 
     grid.innerHTML = activeCustomers.map(c => {
+        const [ad, soyad] = parseAdSoyad(c.ad_soyad);
         const matches = state.portfolios
             .map(p => ({ portfolio: p, score: calculateCompatibility(c, p) }))
             .filter(m => m.score > 0)
@@ -680,11 +731,11 @@ function renderMatching() {
                 <div class="match-customer-info">
                     <div class="match-avatar"><i class="fas fa-user"></i></div>
                     <div>
-                        <div class="match-name">${c.ad} ${c.soyad}</div>
+                        <div class="match-name">${ad} ${soyad}</div>
                         <div class="match-needs">
                             ${TUR_LABELS[c.istek_tur] || ''} · ${DURUM_LABELS[c.istek_durum] || ''} · 
                             ${formatPrice(c.butce_min)} – ${formatPrice(c.butce_max)}
-                            ${c.tercih_ilce ? ' · ' + c.tercih_ilce : ''}
+                            ${c.tercih_konum ? ' · ' + c.tercih_konum : ''}
                         </div>
                     </div>
                 </div>
@@ -703,6 +754,7 @@ function renderMatching() {
                     ? '<div class="no-match"><i class="fas fa-times-circle" style="color:var(--danger)"></i> Uygun portföy bulunamadı</div>'
                     : matches.map(m => {
                         const photo = getFirstPhoto(m.portfolio.fotograflar);
+                        const [il, ilce] = parseKonum(m.portfolio.konum);
                         const scoreClass = m.score >= 80 ? '' : m.score >= 60 ? 'medium' : 'low';
                         return `
                         <div class="match-portfolio-item" onclick="showPortfolioDetail('${m.portfolio.id}')">
@@ -712,7 +764,7 @@ function renderMatching() {
                             <div class="match-portfolio-info">
                                 <div class="match-portfolio-title">${m.portfolio.baslik}</div>
                                 <div class="match-portfolio-details">
-                                    ${m.portfolio.ilce || ''} ${m.portfolio.il ? ', ' + m.portfolio.il : ''} · 
+                                    ${ilce || ''} ${il ? ', ' + il : ''} · 
                                     ${formatPrice(m.portfolio.fiyat)}
                                     ${m.portfolio.alan ? ' · ' + m.portfolio.alan + ' m²' : ''}
                                 </div>
@@ -730,13 +782,14 @@ function findMatches(customerId) {
     const c = state.customers.find(x => x.id === customerId);
     if (!c) return;
 
+    const [ad, soyad] = parseAdSoyad(c.ad_soyad);
     const matches = state.portfolios
         .map(p => ({ portfolio: p, score: calculateCompatibility(c, p) }))
         .filter(m => m.score > 0)
         .sort((a, b) => b.score - a.score);
 
     document.getElementById('matchModalTitle').innerHTML = `
-        <i class="fas fa-magic"></i> ${c.ad} ${c.soyad} için Eşleşmeler
+        <i class="fas fa-magic"></i> ${ad} ${soyad} için Eşleşmeler
     `;
 
     const content = matches.length === 0
@@ -751,6 +804,7 @@ function findMatches(customerId) {
            <div class="match-detail-list">
             ${matches.map(m => {
                 const photo = getFirstPhoto(m.portfolio.fotograflar);
+                const [il, ilce] = parseKonum(m.portfolio.konum);
                 const scoreClass = m.score >= 80 ? '' : m.score >= 60 ? 'medium' : 'low';
                 return `
                 <div class="match-item ${scoreClass}" onclick="closeModal('matchModal');showPortfolioDetail('${m.portfolio.id}')" style="cursor:pointer">
@@ -760,7 +814,7 @@ function findMatches(customerId) {
                     <div style="flex:1">
                         <div style="font-weight:600;margin-bottom:4px">${m.portfolio.baslik}</div>
                         <div style="font-size:.78rem;color:var(--text-muted)">
-                            ${m.portfolio.ilce || ''} ${m.portfolio.il ? ', ' + m.portfolio.il : ''} · 
+                            ${ilce || ''} ${il ? ', ' + il : ''} · 
                             ${TUR_LABELS[m.portfolio.tur] || ''} · ${DURUM_LABELS[m.portfolio.durum] || ''}
                         </div>
                         <div style="font-size:.875rem;font-weight:700;color:var(--primary);margin-top:4px">${formatPrice(m.portfolio.fiyat)}</div>
@@ -790,8 +844,7 @@ function handleGlobalSearch(query) {
         const grid = document.getElementById('portfolioGrid');
         const filtered = state.portfolios.filter(p =>
             (p.baslik || '').toLowerCase().includes(query) ||
-            (p.il || '').toLowerCase().includes(query) ||
-            (p.ilce || '').toLowerCase().includes(query) ||
+            (p.konum || '').toLowerCase().includes(query) ||
             (p.adres || '').toLowerCase().includes(query)
         );
         if (filtered.length === 0) {
@@ -806,26 +859,14 @@ function handleGlobalSearch(query) {
 
     if (state.currentPage === 'customers') {
         const filtered = state.customers.filter(c =>
-            (c.ad + ' ' + c.soyad).toLowerCase().includes(query) ||
-            (c.telefon || '').includes(query) ||
-            (c.email || '').toLowerCase().includes(query)
+            (c.ad_soyad || '').toLowerCase().includes(query) ||
+            (c.telefon || '').includes(query)
         );
         const tmp = state.customers;
         state.customers = filtered;
         renderCustomers();
         state.customers = tmp;
     }
-}
-
-// ===== MOBILE SIDEBAR =====
-function openMobileSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('sidebarOverlay').classList.add('active');
-}
-
-function closeMobileSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('active');
 }
 
 // ===== BACKUP & RESTORE =====
@@ -875,6 +916,17 @@ function importData() {
         }
     };
     input.click();
+}
+
+// ===== MOBILE SIDEBAR =====
+function openMobileSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebarOverlay').classList.add('active');
+}
+
+function closeMobileSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('active');
 }
 
 // ===== EVENT LISTENERS =====
@@ -965,4 +1017,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadAll();
 });
-
